@@ -1,0 +1,14 @@
+version: '3.3'
+
+services:
+  ttsapi:
+    build: .
+    container_name: TwitchIrcHub
+    env_file:
+      - .env
+    network_mode: bridge
+    volumes:
+      - /var/run/mysqld/mysqld.sock:/root/mysqld.sock:rw
+    ports:
+      - "4720:4720"
+    restart: unless-stopped
