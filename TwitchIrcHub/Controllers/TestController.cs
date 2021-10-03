@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TwitchIrcHub.Authentication.Policies;
 
 namespace TwitchIrcHub.Controllers;
 
@@ -14,6 +16,7 @@ public class TestController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = Policies.IsRegisteredApp)]
     public async Task<ActionResult> Get()
     {
         return Ok();

@@ -1,6 +1,11 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using TwitchIrcHub.Authentication;
+using TwitchIrcHub.Authentication.Policies;
+using TwitchIrcHub.Authentication.Policies.Handler;
+using TwitchIrcHub.Authentication.Policies.Requirements;
 using TwitchIrcHub.BackgroundServices;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
@@ -49,6 +54,21 @@ builder.Services.AddDbContext<IrcHubDbContext>(opt =>
     opt.UseMySQL(dbConString + additionalMySqlConfigurationParameters);
 });
 
+//https://josef.codes/asp-net-core-protect-your-api-with-api-keys/
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = ApiKeyAuthenticationOptions.DefaultScheme;
+        options.DefaultChallengeScheme = ApiKeyAuthenticationOptions.DefaultScheme;
+    })
+    .AddApiKeySupport(_ => { });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Policies.IsRegisteredApp,
+        policy => policy.Requirements.Add(new IsRegisteredAppRequirements()));
+});
+
+builder.Services.AddTransient<IAuthorizationHandler, IsRegisterdAppHandler>();
+
 
 builder.Services.AddSignalR();
 
@@ -74,7 +94,7 @@ if (app.Environment.IsDevelopment())
 app.UseWebSockets();
 app.UseCors();
 app.UseRouting();
-//app.UseAuthentication();
+app.UseAuthentication();
 app.UseAuthorization();
 
 //app.MapControllers();
