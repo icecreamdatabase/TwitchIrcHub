@@ -1,7 +1,6 @@
-﻿namespace TwitchIrcHub.Authentication.Policies
+﻿namespace TwitchIrcHub.Authentication.Policies;
+
+public static class Policies
 {
-    public static class Policies
-    {
-        public const string IsRegisteredApp = nameof(IsRegisteredApp);
-    }
+    public const string IsRegisteredApp = nameof(IsRegisteredApp);
 }

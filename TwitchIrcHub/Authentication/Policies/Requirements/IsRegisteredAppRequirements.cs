@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace TwitchIrcHub.Authentication.Policies.Requirements
+namespace TwitchIrcHub.Authentication.Policies.Requirements;
+
+public class IsRegisteredAppRequirements : IAuthorizationRequirement
 {
-    public class IsRegisteredAppRequirements : IAuthorizationRequirement
-    {
-    }
 }
