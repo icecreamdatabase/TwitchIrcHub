@@ -5,13 +5,6 @@ namespace TwitchIrcHub.Authentication.Policies.Handler
 {
     public class IsRegisterdAppHandler : AuthorizationHandler<IsRegisteredAppRequirements>
     {
-        private readonly ILogger<IsRegisterdAppHandler> _logger;
-
-        public IsRegisterdAppHandler(ILogger<IsRegisterdAppHandler> logger)
-        {
-            _logger = logger;
-        }
-
         protected override async Task<Task> HandleRequirementAsync(AuthorizationHandlerContext context,
             IsRegisteredAppRequirements requirement)
         {
