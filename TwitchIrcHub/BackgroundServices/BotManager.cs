@@ -27,7 +27,7 @@ public class BotManager : TimedHostedService
         _logger.LogInformation("Checking bots ...");
 
         List<int> activeBotIds = BotInstances.Select(bot => bot.BotUserId).ToList();
-        List<int> requiredBotIds = db.Bots.Select(bot => bot.UserId).ToList();
+        List<int> requiredBotIds = db.Bots.Where(bot => bot.Enabled).Select(bot => bot.UserId).ToList();
 
         RemoveBots(activeBotIds.Except(requiredBotIds).ToArray());
         CreateBots(serviceProvider, requiredBotIds.Except(activeBotIds).ToArray());

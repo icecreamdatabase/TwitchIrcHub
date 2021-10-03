@@ -25,6 +25,8 @@ public class Channel
     [Required]
     public int MinCooldown { get; set; } = 0;
 
+    public virtual List<Connection> Connections { get; set; } = null!;
+
     protected internal static void BuildModel(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Channel>(entity =>
