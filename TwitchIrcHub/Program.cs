@@ -52,6 +52,7 @@ builder.Services.AddDbContext<IrcHubDbContext>(opt =>
 
 builder.Services.AddSignalR();
 
+builder.Services.AddHostedService<PrepareBotAndPrefetchData>();
 builder.Services.AddHostedService<BotManager>();
 
 builder.Services.AddFactory<IBotInstance, BotInstance>();

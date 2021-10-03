@@ -11,7 +11,7 @@ public class BotManager : TimedHostedService
     private static readonly List<IBotInstance> BotInstances = new();
 
     protected override TimeSpan Interval { get; } = TimeSpan.FromSeconds(10.0);
-    protected override TimeSpan FirstRunAfter { get; } = TimeSpan.FromSeconds(1);
+    protected override TimeSpan FirstRunAfter { get; } = TimeSpan.FromSeconds(2.5);
 
     public BotManager(IServiceProvider services) : base(services)
     {

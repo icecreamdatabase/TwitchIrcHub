@@ -4,8 +4,8 @@
 public abstract class TimedHostedService : IHostedService, IDisposable
 {
     private readonly ILogger _logger;
-    private Timer _timer;
-    private Task _executingTask;
+    private Timer? _timer;
+    private Task? _executingTask;
     private readonly CancellationTokenSource _stoppingCts = new();
 
     private readonly IServiceProvider _services;
@@ -23,7 +23,7 @@ public abstract class TimedHostedService : IHostedService, IDisposable
         return Task.CompletedTask;
     }
 
-    private void ExecuteTask(object state)
+    private void ExecuteTask(object? state)
     {
         _timer?.Change(Timeout.Infinite, 0);
         _executingTask = ExecuteTaskAsync(_stoppingCts.Token);
@@ -41,7 +41,7 @@ public abstract class TimedHostedService : IHostedService, IDisposable
             _logger.LogError("BackgroundTask Failed {Exception}", exception);
         }
 
-        _timer.Change(Interval, TimeSpan.FromMilliseconds(-1));
+        _timer?.Change(Interval, TimeSpan.FromMilliseconds(-1));
     }
 
     /// <summary>
