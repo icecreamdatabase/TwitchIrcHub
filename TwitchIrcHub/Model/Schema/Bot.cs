@@ -14,6 +14,7 @@ public class Bot
     public int UserId { get; set; }
 
     [Required]
+    [MaxLength(25)]
     public string UserName { get; set; } = null!;
 
     [Required]
@@ -23,21 +24,18 @@ public class Bot
     public bool EnabledWhisperLog { get; set; } = true;
 
     [Required]
-    public string ClientId { get; set; } = null!;
-
-    [Required]
-    public string ClientSecret { get; set; } = null!;
-
-    [Required]
+    [MaxLength(30)]
     public string AccessToken { get; set; } = null!;
 
     [Required]
+    [MaxLength(50)]
     public string RefreshToken { get; set; } = null!;
 
     [Required]
-    public string SupinicApiUser { get; set; } = null!;
+    public int SupinicApiUser { get; set; }
 
     [Required]
+    [MaxLength(65)]
     public string SupinicApiKey { get; set; } = null!;
 
     public virtual List<Connection> Connections { get; set; } = null!;

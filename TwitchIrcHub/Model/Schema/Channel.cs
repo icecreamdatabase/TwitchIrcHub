@@ -14,6 +14,7 @@ public class Channel
     public int RoomId { get; set; }
 
     [Required]
+    [MaxLength(25)]
     public string ChannelName { get; set; } = null!;
 
     [Required]

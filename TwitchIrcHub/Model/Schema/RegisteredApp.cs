@@ -16,6 +16,7 @@ public class RegisteredApp
     public int Id { get; set; }
 
     [Required]
+    [MaxLength(255)]
     public string AppName { get; set; } = null!;
 
     [Required]
