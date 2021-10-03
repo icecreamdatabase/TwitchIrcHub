@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TwitchIrcHub.Authentication.Policies;
 using TwitchIrcHub.Model;
 
 namespace TwitchIrcHub.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize(Policy = Policies.IsRegisteredApp)]
 public class ManagementController: ControllerBase
 {
     private readonly ILogger<ManagementController> _logger;

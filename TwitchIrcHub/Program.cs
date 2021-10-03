@@ -39,6 +39,28 @@ builder.Services.AddSwaggerGen(c =>
     if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
         c.IncludeXmlComments("TtsApi.xml");
 
+    c.AddSecurityDefinition("API Key", new OpenApiSecurityScheme
+    {
+        Description = "32 char API Key",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "API Key"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
     string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
     string commentsFileName = Assembly.GetExecutingAssembly().GetName().Name + ".XML";
     string commentsFile = Path.Combine(baseDirectory, commentsFileName);
