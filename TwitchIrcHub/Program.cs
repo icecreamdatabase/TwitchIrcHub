@@ -101,6 +101,9 @@ builder.Services.AddFactory<IBotInstance, BotInstance>();
 builder.Services.AddFactory<IIrcPoolManager, IrcPoolManager>();
 builder.Services.AddFactory<IIrcClient, IrcClient>();
 
+// Inject ServiceProvider into static BotDataAccess class
+BotDataAccess.ServiceProvider = builder.Services.BuildServiceProvider();
+
 
 WebApplication app = builder.Build();
 

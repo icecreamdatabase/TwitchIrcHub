@@ -5,6 +5,7 @@ namespace TwitchIrcHub.Model;
 
 public class IrcHubDbContext : DbContext
 {
+    public DbSet<BotData> BotData { get; set; } = null!;
     public DbSet<Bot> Bots { get; set; } = null!;
     public DbSet<Channel> Channels { get; set; } = null!;
     public DbSet<Connection> Connections { get; set; } = null!;
@@ -22,6 +23,7 @@ public class IrcHubDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        Schema.BotData.BuildModel(modelBuilder);
         Bot.BuildModel(modelBuilder);
         Channel.BuildModel(modelBuilder);
         Connection.BuildModel(modelBuilder);
