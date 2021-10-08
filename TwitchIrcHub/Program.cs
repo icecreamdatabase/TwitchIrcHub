@@ -7,6 +7,7 @@ using TwitchIrcHub.Authentication.Policies;
 using TwitchIrcHub.Authentication.Policies.Handler;
 using TwitchIrcHub.Authentication.Policies.Requirements;
 using TwitchIrcHub.BackgroundServices;
+using TwitchIrcHub.Controllers.AuthController.AuthData;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
@@ -100,6 +101,7 @@ builder.Services.AddHostedService<BotManager>();
 builder.Services.AddFactory<IBotInstance, BotInstance>();
 builder.Services.AddFactory<IIrcPoolManager, IrcPoolManager>();
 builder.Services.AddFactory<IIrcClient, IrcClient>();
+builder.Services.AddFactory<IBotInstanceData, BotInstanceData>();
 
 // Inject ServiceProvider into static BotDataAccess class
 BotDataAccess.ServiceProvider = builder.Services.BuildServiceProvider();
@@ -113,6 +115,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TwitchIrcHub v1"));
     app.UseDeveloperExceptionPage();
+    AuthData.RedirectUrl = AuthData.RedirectUrlDevelopment;
+}
+else
+{
+    AuthData.RedirectUrl = AuthData.RedirectUrlProduction;
 }
 
 //app.UseHttpsRedirection();

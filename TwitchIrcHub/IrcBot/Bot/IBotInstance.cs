@@ -4,7 +4,7 @@ public interface IBotInstance : IDisposable
 {
     void Init(int botUserId);
 
-    void Update();
+    void IntervalPing();
     
-    int BotUserId { get; }
+    IBotInstanceData BotInstanceData { get; }
 }

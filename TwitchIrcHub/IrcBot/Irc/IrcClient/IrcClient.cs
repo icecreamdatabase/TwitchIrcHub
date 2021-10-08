@@ -132,10 +132,10 @@ public class IrcClient : IIrcClient
 
                 // This will make sure we can stop waiting when a cancellation token has been sent
                 // https://devblogs.microsoft.com/pfxteam/how-do-i-cancel-non-cancelable-async-operations/
-                Task<string> readTask = reader.ReadLineAsync();
+                Task<string?> readTask = reader.ReadLineAsync();
                 try
                 {
-                    line = await readTask.WithCancellation(stoppingToken);
+                    line = await readTask.WithCancellation(stoppingToken) ?? string.Empty;
                 }
                 catch (OperationCanceledException)
                 {
@@ -143,8 +143,8 @@ public class IrcClient : IIrcClient
                 }
 
                 // No data = connection dead
-                if (line == null) continue;
-                IrcMessage ircMessage = IrcParser.Parse(line);
+                if (string.IsNullOrEmpty(line)) continue;
+                IrcMessage? ircMessage = IrcParser.Parse(line);
                 if (ircMessage == null) continue;
 
                 await HandleIrcCommand(ircMessage, stoppingToken);
@@ -270,10 +270,10 @@ public class IrcClient : IIrcClient
         } while (await PartExcessive() || await JoinMissing());
 
         if (_actualChannels.Except(Channels).Any())
-            _logger.LogWarning("Still has channels to part: {0}", _actualChannels.Except(Channels).Count());
-            
+            _logger.LogWarning("Still has channels to part: {Count}", _actualChannels.Except(Channels).Count());
+
         if (Channels.Except(_actualChannels).Any())
-            _logger.LogWarning("Still has channels to join: {0}", Channels.Except(_actualChannels).Count());
+            _logger.LogWarning("Still has channels to join: {Count}", Channels.Except(_actualChannels).Count());
 
         _currentlyUpdatingChannels = false;
     }

@@ -1,6 +1,9 @@
-﻿using TwitchIrcHub.IrcBot.Helper;
+﻿using Microsoft.EntityFrameworkCore;
+using TwitchIrcHub.IrcBot.Bot;
+using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
+using TwitchIrcHub.Model;
 
 namespace TwitchIrcHub.IrcBot.Irc.IrcPoolManager;
 
@@ -8,6 +11,7 @@ public class IrcPoolManager : IIrcPoolManager
 {
     private readonly ILogger<IrcPoolManager> _logger;
     private readonly IFactory<IIrcClient> _ircClientFactory;
+    private readonly IrcHubDbContext _ircHubDbContext;
 
     private readonly List<IIrcClient> _ircSendClients = new();
     private readonly List<IIrcClient> _ircReceiveClients = new();
@@ -16,23 +20,22 @@ public class IrcPoolManager : IIrcPoolManager
     public BasicBucket AuthenticateBucket { get; } = new(20, 10);
     public BasicBucket JoinBucket { get; } = new(20, 10);
 
-    protected internal int BotUserId => 0;
-    public string BotUsername => _username;
-    public string BotOauth => _oauth;
+    public string BotUsername => _botInstance.BotInstanceData.UserName;
+    public string BotOauth => _botInstance.BotInstanceData.AccessToken;
 
-    public IrcPoolManager(ILogger<IrcPoolManager> logger, IFactory<IIrcClient> ircClientFactory)
+    private BotInstance _botInstance = null!;
+
+    public IrcPoolManager(ILogger<IrcPoolManager> logger, IServiceProvider serviceProvider,
+        IFactory<IIrcClient> ircClientFactory)
     {
         _logger = logger;
+        _ircHubDbContext = serviceProvider.CreateScope().ServiceProvider.GetService<IrcHubDbContext>()!;
         _ircClientFactory = ircClientFactory;
     }
 
-    private string _username;
-    private string _oauth;
-
-    public async Task Init(string username, string oauth)
+    public async Task Init(BotInstance botInstance)
     {
-        _username = username;
-        _oauth = oauth;
+        _botInstance = botInstance;
         int sendConnectionCount = Limits.NormalBot.SendConnections;
         for (int i = 0; i < sendConnectionCount; i++)
         {
@@ -41,24 +44,27 @@ public class IrcPoolManager : IIrcPoolManager
             _ircSendClients.Add(ircClient);
         }
 
-        SetChannel("icdb", "pajlada", "theonemanny", "amy_magic1", "divinecarly", "channelpoints_tts",
-            //"supibot", "cineafx", "icecreamdatabase", "icdbot", "weneedmoredankbots", "sshsierra", "omgmochi",
-            //"forsen", "nymn", "swushwoi", "nani", "ceejaey", "supinic", "sunred_", "teischente", "tranred",
-            //"vesp3r", "empyrione", "chickybro", "fabzeef", "romydank", "robbaz", "tene__", "nuuls", "hugo_one",
-            "griphthefrog", "x0r6zt", "zahra", "teyn", "zelbina");
-
-        await Task.Delay(10000);
-            
-        Join("nuuls");
+        UpdateChannels();
     }
 
-    public void SetChannel(params string[] channelNames)
+    public void UpdateChannels()
+    {
+        string[] channels = _ircHubDbContext.Connections
+            .Include(channel => channel.Channel)
+            .Where(connection => connection.BotUserId == _botInstance.BotInstanceData.UserId)
+            .Select(connection => connection.Channel.ChannelName)
+            .ToArray();
+
+        SetChannel(channels);
+    }
+
+    private void SetChannel(params string[] channelNames)
     {
         Part(_ircReceiveClients.SelectMany(client => client.Channels).Except(channelNames).ToArray());
         Join(channelNames.Except(_ircReceiveClients.SelectMany(client => client.Channels)).ToArray());
     }
 
-    public void Join(params string[] channelNames)
+    private void Join(params string[] channelNames)
     {
         List<string> channels = channelNames.ToList();
         foreach (IIrcClient ircClient in _ircReceiveClients
@@ -84,7 +90,7 @@ public class IrcPoolManager : IIrcPoolManager
         }
     }
 
-    public void Part(params string[] channelNames)
+    private void Part(params string[] channelNames)
     {
         foreach (string channelName in channelNames)
         {

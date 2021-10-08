@@ -7,7 +7,7 @@ public static class IrcParser
 {
     private static readonly Regex ValidCmdRegex = new(@"^(?:[a-zA-Z]+|[0-9]{3})$");
 
-    public static IrcMessage Parse(string line)
+    public static IrcMessage? Parse(string line)
     {
         string remainder = line;
 

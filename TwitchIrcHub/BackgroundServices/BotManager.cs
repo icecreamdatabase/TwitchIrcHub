@@ -1,4 +1,5 @@
-﻿using TwitchIrcHub.IrcBot.Bot;
+﻿using System.Diagnostics;
+using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.Model;
 
@@ -26,13 +27,13 @@ public class BotManager : TimedHostedService
 
         _logger.LogInformation("Checking bots ...");
 
-        List<int> activeBotIds = BotInstances.Select(bot => bot.BotUserId).ToList();
+        List<int> activeBotIds = BotInstances.Select(bot => bot.BotInstanceData.UserId).ToList();
         List<int> requiredBotIds = db.Bots.Where(bot => bot.Enabled).Select(bot => bot.UserId).ToList();
 
         RemoveBots(activeBotIds.Except(requiredBotIds).ToArray());
         CreateBots(serviceProvider, requiredBotIds.Except(activeBotIds).ToArray());
 
-        BotInstances.ForEach(bot => bot.Update());
+        BotInstances.ForEach(bot => bot.IntervalPing());
     }
 
     private static void CreateBots(IServiceProvider serviceProvider, params int[] botUserIds)
@@ -57,7 +58,7 @@ public class BotManager : TimedHostedService
         if (botUserIds.Length == 0)
             return;
 
-        foreach (IBotInstance botInstance in BotInstances.Where(bot => botUserIds.Contains(bot.BotUserId)))
+        foreach (IBotInstance botInstance in BotInstances.Where(bot => botUserIds.Contains(bot.BotInstanceData.UserId)))
         {
             BotInstances.Remove(botInstance);
             botInstance.Dispose();

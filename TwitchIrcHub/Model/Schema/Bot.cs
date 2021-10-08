@@ -31,12 +31,10 @@ public class Bot
     [MaxLength(50)]
     public string RefreshToken { get; set; } = null!;
 
-    [Required]
-    public int SupinicApiUser { get; set; }
+    public int? SupinicApiUser { get; set; }
 
-    [Required]
     [MaxLength(65)]
-    public string SupinicApiKey { get; set; } = null!;
+    public string? SupinicApiKey { get; set; } = null!;
 
     public virtual List<Connection> Connections { get; set; } = null!;
 
