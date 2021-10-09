@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using TwitchIrcHub.IrcBot.Bot;
+﻿using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.Model;
 

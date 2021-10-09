@@ -38,6 +38,7 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Register as a bot.
+    /// TODO: Make this POST and use a separate page to do the POST call!
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>

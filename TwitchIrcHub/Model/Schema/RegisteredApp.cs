@@ -13,7 +13,7 @@ public class RegisteredApp
 {
     [Key]
     [Required]
-    public int Id { get; set; }
+    public int RegisteredAppId { get; set; }
 
     [Required]
     [MaxLength(255)]
@@ -28,11 +28,13 @@ public class RegisteredApp
     [Column(TypeName = "TIMESTAMP")]
     public DateTime AddDate { get; set; }
 
+    public virtual List<Connection> Connections { get; set; } = null!;
+    
     protected internal static void BuildModel(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<RegisteredApp>(entity =>
         {
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.RegisteredAppId).ValueGeneratedOnAdd();
             entity.Property(e => e.AddDate).ValueGeneratedOnAdd();
         });
     }

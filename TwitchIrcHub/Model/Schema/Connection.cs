@@ -10,23 +10,29 @@ namespace TwitchIrcHub.Model.Schema;
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class Connection
 {
-    [ForeignKey("Bot")]
+    [ForeignKey(nameof(Bot))]
     [Required]
     public int BotUserId { get; set; }
 
     public virtual Bot Bot { get; set; } = null!;
-    
-    [ForeignKey("Channel")]
+
+    [ForeignKey(nameof(Channel))]
     [Required]
     public int RoomId { get; set; }
-    
+
     public virtual Channel Channel { get; set; } = null!;
+
+    [ForeignKey(nameof(RegisteredApp))]
+    [Required]
+    public int RegisteredAppId { get; set; }
+
+    public virtual RegisteredApp RegisteredApp { get; set; } = null!;
 
     protected internal static void BuildModel(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Connection>(entity =>
         {
-            entity.HasKey(nameof(BotUserId), nameof(RoomId));
+            entity.HasKey(nameof(BotUserId), nameof(RoomId), nameof(RegisteredAppId));
         });
     }
 }
