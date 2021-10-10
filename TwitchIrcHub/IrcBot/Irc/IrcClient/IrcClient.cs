@@ -16,7 +16,7 @@ public class IrcClient : IIrcClient
     private const string Server = "irc.chat.twitch.tv";
     private const int Port = 6667;
 
-    private IIrcPoolManager _ircPoolManager;
+    private IIrcPoolManager _ircPoolManager = null!;
 
     /* Ping */
     private bool _awaitingPing;
@@ -35,10 +35,9 @@ public class IrcClient : IIrcClient
     private StreamWriter? _streamWriter;
 
     /* Threading and shutdown */
-    private Thread _thread;
-    private CancellationTokenSource _cancellationTokenSource;
+    private Thread _thread = null!;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private bool _autoRestart = true;
-    public bool IsAlive => _thread?.IsAlive ?? false;
 
     /* Channels and joining */
     public BulkObservableCollection<string> Channels { get; } = new();
@@ -63,7 +62,6 @@ public class IrcClient : IIrcClient
 
     private async void ThreadRun()
     {
-        _cancellationTokenSource = new CancellationTokenSource();
         CancellationToken cancellationToken = _cancellationTokenSource.Token;
 
         while (!cancellationToken.IsCancellationRequested && _autoRestart)
@@ -201,7 +199,7 @@ public class IrcClient : IIrcClient
 #pragma warning restore 4014
                 break;
             case IrcCommands.Ping:
-                if (_streamWriter == null) 
+                if (_streamWriter == null)
                     return;
                 await _streamWriter.WriteLineAsync("PONG");
                 await _streamWriter.FlushAsync();
@@ -295,6 +293,7 @@ public class IrcClient : IIrcClient
             _ircPoolManager.RemoveReceiveClient(this);
             await Shutdown();
         }
+
         _currentlyUpdatingChannels = false;
     }
 
