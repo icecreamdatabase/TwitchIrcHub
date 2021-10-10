@@ -1,5 +1,8 @@
-﻿namespace TwitchIrcHub.IrcBot.Irc.DataTypes;
+﻿using System.Diagnostics.CodeAnalysis;
 
+namespace TwitchIrcHub.IrcBot.Irc.DataTypes;
+
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public static class IrcCommands
 {
     public const string RplWelcome = "001";

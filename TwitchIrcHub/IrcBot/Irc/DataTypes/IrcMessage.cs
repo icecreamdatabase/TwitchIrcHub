@@ -1,6 +1,6 @@
 ﻿namespace TwitchIrcHub.IrcBot.Irc.DataTypes;
 
-public class IrcMessage : IIrcMessageData
+public class IrcMessage
 {
     public string RawSource { get; init; }
     public string IrcPrefixRaw { get; init; }

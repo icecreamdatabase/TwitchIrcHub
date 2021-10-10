@@ -189,6 +189,9 @@ public class IrcClient : IIrcClient
     {
         switch (ircMessage.IrcCommand)
         {
+            /* --------------------------------------------------------------------------- */
+            /* ------------------------------ Setup commands ----------------------------- */
+            /* --------------------------------------------------------------------------- */
             case IrcCommands.RplWelcome:
 #pragma warning disable 4014
                 Task.Delay(4000, stoppingToken).ContinueWith(_ =>
@@ -198,12 +201,29 @@ public class IrcClient : IIrcClient
                 }, stoppingToken);
 #pragma warning restore 4014
                 break;
-            case IrcCommands.Ping:
-                if (_streamWriter == null)
-                    return;
+            /* --------------------------------------------------------------------------- */
+            /* ----------------------------- Ignored commands ---------------------------- */
+            /* --------------------------------------------------------------------------- */
+            case IrcCommands.RplYourHost:
+            case IrcCommands.RplCreated:
+            case IrcCommands.RplMyInfo:
+            case IrcCommands.RplNamReply:
+            case IrcCommands.RplEndOfNames:
+            case IrcCommands.RplMotd:
+            case IrcCommands.RplMotdStart:
+            case IrcCommands.RplEndOfMotd:
+            case IrcCommands.Cap:
+                // Ignore
+                return;
+            /* --------------------------------------------------------------------------- */
+            /* ---------------------- IrcClient management commands ---------------------- */
+            /* --------------------------------------------------------------------------- */
+            case IrcCommands.Ping when _streamWriter != null:
                 await _streamWriter.WriteLineAsync("PONG");
                 await _streamWriter.FlushAsync();
-
+                return;
+            case IrcCommands.Ping when _streamWriter == null:
+                _logger.LogWarning("Received Ping with no valid StreamWriter.");
                 return;
             case IrcCommands.Pong:
                 _awaitingPing = false;
@@ -212,32 +232,39 @@ public class IrcClient : IIrcClient
                 // automatic restart by checking _tcpClient.Connected in the while loop
                 _tcpClient?.Close();
                 return;
-            case IrcCommands.Notice
-                when ircMessage.IrcParameters[1].Contains("Login authentication failed"):
-
-                _logger.LogWarning("Auth failed");
-                await _ircPoolManager.RefreshAuth();
-                return;
-            case IrcCommands.GlobalUserstate:
-                return;
-            case IrcCommands.Userstate:
-                return;
-            case IrcCommands.Roomstate:
-                //_logger.LogInformation("Roomstate: {RawSource}", ircMessage.RawSource);
-                return;
             case IrcCommands.Join:
-                //_logger.LogInformation("Join: {RawSource}", ircMessage.IrcParameters[0][1..]);
                 string channelName = ircMessage.IrcParameters[0][1..];
                 if (!_actualChannels.Contains(channelName))
                     _actualChannels.Add(channelName);
                 return;
             case IrcCommands.Part:
-                //_logger.LogInformation("Join: {RawSource}", ircMessage.RawSource);
                 _actualChannels.Remove(ircMessage.IrcParameters[0][1..]);
                 return;
-            case IrcCommands.PrivMsg:
-                await _ircPoolManager.NewPrivMsg(ircMessage);
+            case IrcCommands.Notice
+                when ircMessage.IrcParameters[1].Contains("Login authentication failed"):
+
+                _logger.LogWarning("Auth failed");
+                //TODO: do we need to do something else here?
+                await _ircPoolManager.ForceCheckAuth();
                 return;
+            /* --------------------------------------------------------------------------- */
+            /* ---------------------- SignalR subscribable commands ---------------------- */
+            /* --------------------------------------------------------------------------- */
+            case IrcCommands.Notice:
+            case IrcCommands.GlobalUserstate:
+            case IrcCommands.ClearChat:
+            case IrcCommands.ClearMsg:
+            case IrcCommands.HostTarget:
+            case IrcCommands.Userstate:
+            case IrcCommands.Roomstate:
+            case IrcCommands.UserNotice:
+            case IrcCommands.Whisper:
+            case IrcCommands.PrivMsg:
+                await _ircPoolManager.NewIrcMessage(ircMessage);
+                return;
+            /* --------------------------------------------------------------------------- */
+            /* ----------------------------- Default fallback ---------------------------- */
+            /* --------------------------------------------------------------------------- */
             default:
                 //_logger.LogInformation("{Command}—{RawSource}", ircMessage.IrcCommand, ircMessage.RawSource);
                 return;

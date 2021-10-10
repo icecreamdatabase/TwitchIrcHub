@@ -12,8 +12,8 @@ public interface IIrcPoolManager
     public BasicBucket JoinBucket { get; }
     public string BotUsername { get; }
     public string BotOauth { get; }
-    public Task RefreshAuth();
-    public Task NewPrivMsg(IrcMessage ircMessage);
+    public Task ForceCheckAuth();
+    public Task NewIrcMessage(IrcMessage ircMessage);
     public void IntervalPing();
     public void RemoveReceiveClient(IIrcClient ircClient);
 }

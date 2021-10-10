@@ -2,6 +2,7 @@
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.Parsed;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
 using TwitchIrcHub.Model;
 
@@ -105,7 +106,7 @@ public class IrcPoolManager : IIrcPoolManager
             GetIrcClientOfChannel(channelName)?.Channels.Remove(channelName);
     }
 
-    public void SendMessage(string channel, string message)
+    public void SendMessage(string channel, string message, string? clientNonce = null, string? replyParentMsgId = null)
     {
     }
 
@@ -114,15 +115,23 @@ public class IrcPoolManager : IIrcPoolManager
         return _ircReceiveClients.FirstOrDefault(client => client.Channels.Contains(channel));
     }
 
-    public Task RefreshAuth()
+    public Task ForceCheckAuth()
     {
-        return null;
+        return Task.CompletedTask;
     }
 
-    public async Task NewPrivMsg(IrcMessage ircMessage)
+    public async Task NewIrcMessage(IrcMessage ircMessage)
     {
-        _logger.LogInformation("PRIVMSG: {Channel}: {Msg}",
-            ircMessage.IrcParameters[0], ircMessage.IrcParameters[1]);
+        if (ircMessage.IrcCommand == IrcCommands.PrivMsg)
+        {
+            IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
+            _logger.LogInformation("{Command}: {Channel}: {Msg}",
+                ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
+        }
+        else
+        {
+            _logger.LogInformation("{Command}: {Raw}", ircMessage.IrcCommand, ircMessage.RawSource);
+        }
     }
 
     public void RemoveReceiveClient(IIrcClient ircClient)
