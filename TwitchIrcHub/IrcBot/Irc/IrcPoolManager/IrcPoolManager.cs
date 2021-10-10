@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
@@ -106,6 +107,7 @@ public class IrcPoolManager : IIrcPoolManager
             GetIrcClientOfChannel(channelName)?.Channels.Remove(channelName);
     }
 
+    //@client-nonce=xxx;reply-parent-msg-id=xxx PRIVMSG #channel :xxxxxx `
     public void SendMessage(string channel, string message, string? clientNonce = null, string? replyParentMsgId = null)
     {
     }
@@ -124,6 +126,7 @@ public class IrcPoolManager : IIrcPoolManager
     {
         if (ircMessage.IrcCommand == IrcCommands.PrivMsg)
         {
+            _logger.LogInformation("{Raw}", ircMessage.RawSource);
             IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
             _logger.LogInformation("{Command}: {Channel}: {Msg}",
                 ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
