@@ -14,6 +14,6 @@ public interface IIrcPoolManager
     public string BotOauth { get; }
     public Task ForceCheckAuth();
     public Task NewIrcMessage(IrcMessage ircMessage);
-    public void IntervalPing();
+    public Task IntervalPing();
     public void RemoveReceiveClient(IIrcClient ircClient);
 }

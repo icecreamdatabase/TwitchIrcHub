@@ -2,9 +2,9 @@
 
 public interface IBotInstance : IDisposable
 {
-    void Init(int botUserId);
+    public Task Init(int botUserId);
 
-    void IntervalPing();
+    public Task IntervalPing();
     
-    IBotInstanceData BotInstanceData { get; }
+    public IBotInstanceData BotInstanceData { get; }
 }

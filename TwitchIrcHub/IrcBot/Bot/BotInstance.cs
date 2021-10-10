@@ -19,22 +19,23 @@ public class BotInstance : IBotInstance
         _botInstanceDataFactory = botInstanceDataFactory;
     }
 
-    public void Init(int botUserId)
+    public async Task Init(int botUserId)
     {
         BotInstanceData = _botInstanceDataFactory.Create();
-        BotInstanceData.Init(botUserId);
+        await BotInstanceData.Init(botUserId);
         _ircPoolManager = _ircPoolManagerFactor.Create();
-        _ircPoolManager.Init(this);
+        await _ircPoolManager.Init(this);
     }
 
-    public void IntervalPing()
+    public async Task IntervalPing()
     {
-        BotInstanceData.IntervalPing();
-        _ircPoolManager.IntervalPing();
+        await BotInstanceData.IntervalPing();
+        await _ircPoolManager.IntervalPing();
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
+        //TODO
     }
 }

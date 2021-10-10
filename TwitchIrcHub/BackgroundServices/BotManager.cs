@@ -30,12 +30,13 @@ public class BotManager : TimedHostedService
         List<int> requiredBotIds = db.Bots.Where(bot => bot.Enabled).Select(bot => bot.UserId).ToList();
 
         RemoveBots(activeBotIds.Except(requiredBotIds).ToArray());
-        CreateBots(serviceProvider, requiredBotIds.Except(activeBotIds).ToArray());
+        await CreateBots(serviceProvider, requiredBotIds.Except(activeBotIds).ToArray());
 
-        BotInstances.ForEach(bot => bot.IntervalPing());
+        Task[] intervalPingTasks = BotInstances.Select(bot => bot.IntervalPing()).ToArray();
+        await Task.WhenAll(intervalPingTasks);
     }
 
-    private static void CreateBots(IServiceProvider serviceProvider, params int[] botUserIds)
+    private static async Task CreateBots(IServiceProvider serviceProvider, params int[] botUserIds)
     {
         if (botUserIds.Length == 0)
             return;
@@ -47,7 +48,7 @@ public class BotManager : TimedHostedService
                 return;
 
             IBotInstance botInstance = botInstanceFactory.Create();
-            botInstance.Init(botUserId);
+            await botInstance.Init(botUserId);
             BotInstances.Add(botInstance);
         }
     }

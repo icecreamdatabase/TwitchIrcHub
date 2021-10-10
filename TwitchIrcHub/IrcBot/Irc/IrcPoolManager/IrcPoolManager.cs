@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
@@ -35,7 +34,7 @@ public class IrcPoolManager : IIrcPoolManager
         _ircClientFactory = ircClientFactory;
     }
 
-    public async Task Init(BotInstance botInstance)
+    public Task Init(BotInstance botInstance)
     {
         _botInstance = botInstance;
         int sendConnectionCount = Limits.NormalBot.SendConnections;
@@ -47,11 +46,13 @@ public class IrcPoolManager : IIrcPoolManager
         }
 
         UpdateChannels();
+        return Task.CompletedTask;
     }
 
-    public void IntervalPing()
+    public Task IntervalPing()
     {
         UpdateChannels();
+        return Task.CompletedTask;
     }
 
     public void UpdateChannels()

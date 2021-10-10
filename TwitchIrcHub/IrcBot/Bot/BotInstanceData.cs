@@ -31,7 +31,7 @@ public class BotInstanceData : IBotInstanceData
     public async Task Init(int botUserId)
     {
         UserId = botUserId;
-        Model.Schema.Bot? bot = _ircHubDbContext.Bots.Find(botUserId);
+        Model.Schema.Bot? bot = await _ircHubDbContext.Bots.FindAsync(botUserId);
         if (bot == null)
             throw new Exception($"No DB data for {botUserId}");
 
@@ -45,10 +45,13 @@ public class BotInstanceData : IBotInstanceData
         _lastValidation = DateTime.Now;
     }
 
-    public void IntervalPing()
+    public async Task IntervalPing()
     {
         if (UpdateCachedAccessToken && !_currentlyValidatingOrRefreshing)
-            ValidateAccessToken().ContinueWith(_ => _lastValidation = DateTime.Now);
+        {
+            await ValidateAccessToken();
+            _lastValidation = DateTime.Now;
+        }
     }
 
     private const int MaxRefreshRetryCountBeforeException = 10;
