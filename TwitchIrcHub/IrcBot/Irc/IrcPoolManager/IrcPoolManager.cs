@@ -47,12 +47,18 @@ public class IrcPoolManager : IIrcPoolManager
         UpdateChannels();
     }
 
+    public void IntervalPing()
+    {
+        UpdateChannels();
+    }
+
     public void UpdateChannels()
     {
         string[] channels = _ircHubDbContext.Connections
             .Include(channel => channel.Channel)
             .Where(connection => connection.BotUserId == _botInstance.BotInstanceData.UserId)
             .Select(connection => connection.Channel.ChannelName)
+            .Distinct()
             .ToArray();
 
         SetChannel(channels);
@@ -66,6 +72,7 @@ public class IrcPoolManager : IIrcPoolManager
 
     private void Join(params string[] channelNames)
     {
+        if (channelNames.Length == 0) return;
         List<string> channels = channelNames.ToList();
         foreach (IIrcClient ircClient in _ircReceiveClients
             .Where(ircClient => ircClient.Channels.Count >= MaxChannelsPerIrcClient)
@@ -92,24 +99,17 @@ public class IrcPoolManager : IIrcPoolManager
 
     private void Part(params string[] channelNames)
     {
+        if (channelNames.Length == 0) return;
+
         foreach (string channelName in channelNames)
-        {
-            IIrcClient ircClient = GetIrcClientOfChannel(channelName);
-            if (ircClient == null) continue;
-
-            ircClient.Channels.Remove(channelName);
-            if (ircClient.Channels.Count > 0) continue;
-
-            //ircClient.Shutdown();
-            //_ircReceiveClients.Remove(ircClient);
-        }
+            GetIrcClientOfChannel(channelName)?.Channels.Remove(channelName);
     }
 
     public void SendMessage(string channel, string message)
     {
     }
 
-    private IIrcClient GetIrcClientOfChannel(string channel)
+    private IIrcClient? GetIrcClientOfChannel(string channel)
     {
         return _ircReceiveClients.FirstOrDefault(client => client.Channels.Contains(channel));
     }
@@ -123,5 +123,10 @@ public class IrcPoolManager : IIrcPoolManager
     {
         _logger.LogInformation("PRIVMSG: {Channel}: {Msg}",
             ircMessage.IrcParameters[0], ircMessage.IrcParameters[1]);
+    }
+
+    public void RemoveReceiveClient(IIrcClient ircClient)
+    {
+        _ircReceiveClients.Remove(ircClient);
     }
 }

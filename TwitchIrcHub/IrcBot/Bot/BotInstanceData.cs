@@ -28,7 +28,7 @@ public class BotInstanceData : IBotInstanceData
         _ircHubDbContext = serviceProvider.CreateScope().ServiceProvider.GetService<IrcHubDbContext>()!;
     }
 
-    public void Init(int botUserId)
+    public async Task Init(int botUserId)
     {
         UserId = botUserId;
         Model.Schema.Bot? bot = _ircHubDbContext.Bots.Find(botUserId);
@@ -40,7 +40,9 @@ public class BotInstanceData : IBotInstanceData
         RefreshToken = bot.RefreshToken;
         SupinicApiUser = bot.SupinicApiUser;
         SupinicApiKey = bot.SupinicApiKey;
-        IntervalPing();
+
+        await ValidateAccessToken();
+        _lastValidation = DateTime.Now;
     }
 
     public void IntervalPing()
@@ -96,5 +98,6 @@ public class BotInstanceData : IBotInstanceData
         await _ircHubDbContext.SaveChangesAsync();
 
         _lastValidation = DateTime.Now;
+        _logger.LogInformation("Refreshed AccessToken for {UserName} ({UserId})", UserName, UserId);
     }
 }

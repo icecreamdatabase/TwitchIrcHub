@@ -7,5 +7,5 @@ public interface IIrcClient
 {
     public void Init(IIrcPoolManager ircPoolManager);
     public BulkObservableCollection<string> Channels { get; }
-    void Shutdown();
+    public Task Shutdown();
 }

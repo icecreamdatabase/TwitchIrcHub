@@ -31,12 +31,12 @@ public class IrcClient : IIrcClient
     private bool _fullyConnected;
 
     /* Irc */
-    private TcpClient _tcpClient;
-    private StreamWriter _streamWriter;
+    private TcpClient? _tcpClient;
+    private StreamWriter? _streamWriter;
 
     /* Threading and shutdown */
     private Thread _thread;
-    public CancellationTokenSource CancellationTokenSource;
+    private CancellationTokenSource _cancellationTokenSource;
     private bool _autoRestart = true;
     public bool IsAlive => _thread?.IsAlive ?? false;
 
@@ -63,8 +63,8 @@ public class IrcClient : IIrcClient
 
     private async void ThreadRun()
     {
-        CancellationTokenSource = new CancellationTokenSource();
-        CancellationToken cancellationToken = CancellationTokenSource.Token;
+        _cancellationTokenSource = new CancellationTokenSource();
+        CancellationToken cancellationToken = _cancellationTokenSource.Token;
 
         while (!cancellationToken.IsCancellationRequested && _autoRestart)
         {
@@ -75,20 +75,24 @@ public class IrcClient : IIrcClient
         _tcpClient?.Dispose();
     }
 
-    private async void PingIntervalOnElapsed(object sender, ElapsedEventArgs e)
+    private async void PingIntervalOnElapsed(object? sender, ElapsedEventArgs e)
     {
         if (_awaitingPing)
         {
             _logger.LogInformation("No PONG received for {Interval} s. Reconnecting...",
                 _pingInterval.Interval / 1000);
             _pingInterval.Stop();
-            Disconnect();
+            await Disconnect();
             _awaitingPing = false;
         }
         else
         {
-            await _streamWriter.WriteLineAsync("PING");
-            await _streamWriter.FlushAsync();
+            if (_streamWriter != null)
+            {
+                await _streamWriter.WriteLineAsync("PING");
+                await _streamWriter.FlushAsync();
+            }
+
             _awaitingPing = true;
         }
     }
@@ -178,7 +182,7 @@ public class IrcClient : IIrcClient
             reconnectionDelay = ReconnectMultiplier * _reconnectionAttempts - ReconnectMaxJitter + randomJitter;
         }
 
-        await Task.Delay(reconnectionDelay, stoppingToken);
+        await Task.Delay(reconnectionDelay, CancellationToken.None);
 
         _reconnectionAttempts = Math.Min(_reconnectionAttempts, ReconnectMaxMultiplier);
     }
@@ -197,15 +201,18 @@ public class IrcClient : IIrcClient
 #pragma warning restore 4014
                 break;
             case IrcCommands.Ping:
+                if (_streamWriter == null) 
+                    return;
                 await _streamWriter.WriteLineAsync("PONG");
                 await _streamWriter.FlushAsync();
+
                 return;
             case IrcCommands.Pong:
                 _awaitingPing = false;
                 return;
             case IrcCommands.Reconnect:
                 // automatic restart by checking _tcpClient.Connected in the while loop
-                _tcpClient.Close();
+                _tcpClient?.Close();
                 return;
             case IrcCommands.Notice
                 when ircMessage.IrcParameters[1].Contains("Login authentication failed"):
@@ -239,20 +246,28 @@ public class IrcClient : IIrcClient
         }
     }
 
-    private void Disconnect()
+    private async Task Disconnect()
     {
+        if (_streamWriter != null && _fullyConnected)
+        {
+            await _streamWriter.WriteLineAsync("QUIT");
+            await _streamWriter.FlushAsync();
+        }
+
         _fullyConnected = false;
+        _pingInterval.Stop();
         _streamWriter?.Close();
         _tcpClient?.Close();
     }
 
-    public void Shutdown()
+    public async Task Shutdown()
     {
         _autoRestart = false;
-        Disconnect();
+        await Disconnect();
+        _cancellationTokenSource.Cancel();
     }
 
-    private async void UpdateJoinedChannels(object sender, NotifyCollectionChangedEventArgs args)
+    private async void UpdateJoinedChannels(object? sender, NotifyCollectionChangedEventArgs args)
     {
         await UpdateJoinedChannels();
     }
@@ -275,6 +290,11 @@ public class IrcClient : IIrcClient
         if (Channels.Except(_actualChannels).Any())
             _logger.LogWarning("Still has channels to join: {Count}", Channels.Except(_actualChannels).Count());
 
+        if (Channels.Count == 0)
+        {
+            _ircPoolManager.RemoveReceiveClient(this);
+            await Shutdown();
+        }
         _currentlyUpdatingChannels = false;
     }
 
@@ -307,8 +327,12 @@ public class IrcClient : IIrcClient
 
             string msg = ircCommand.ToString()[..(ircCommand.Length - 1)];
             _logger.LogInformation("{Msg}", msg);
-            await _streamWriter.WriteLineAsync(msg);
-            await _streamWriter.FlushAsync();
+            if (_streamWriter != null)
+            {
+                await _streamWriter.WriteLineAsync(msg);
+                await _streamWriter.FlushAsync();
+            }
+
             _lastChannelChangeFlushed = DateTime.Now;
             hasChanged = true;
         }
@@ -337,8 +361,12 @@ public class IrcClient : IIrcClient
 
             string msg = ircCommand.ToString()[..(ircCommand.Length - 1)];
             _logger.LogInformation("{Msg}", msg);
-            await _streamWriter.WriteLineAsync(msg);
-            await _streamWriter.FlushAsync();
+            if (_streamWriter != null)
+            {
+                await _streamWriter.WriteLineAsync(msg);
+                await _streamWriter.FlushAsync();
+            }
+
             _lastChannelChangeFlushed = DateTime.Now;
             hasChanged = true;
         }

@@ -30,6 +30,7 @@ public class BotInstance : IBotInstance
     public void IntervalPing()
     {
         BotInstanceData.IntervalPing();
+        _ircPoolManager.IntervalPing();
     }
 
     public void Dispose()

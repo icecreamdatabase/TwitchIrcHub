@@ -9,6 +9,6 @@ public interface IBotInstanceData
     public int? SupinicApiUser { get; }
     public string? SupinicApiKey { get; }
 
-    public void Init(int botUserId);
+    public Task Init(int botUserId);
     public void IntervalPing();
 }
