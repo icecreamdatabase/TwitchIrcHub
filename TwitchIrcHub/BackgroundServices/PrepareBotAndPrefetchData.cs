@@ -7,6 +7,8 @@ namespace TwitchIrcHub.BackgroundServices;
 /// </summary>
 public class PrepareBotAndPrefetchData : IHostedService
 {
+    public static bool IsPrepared { get; private set; }
+    
     private readonly IServiceProvider _serviceProvider;
     private readonly IHostEnvironment _hostEnvironment;
 
@@ -26,6 +28,8 @@ public class PrepareBotAndPrefetchData : IHostedService
         await using IrcHubDbContext db = scopeServiceProvider.GetRequiredService<IrcHubDbContext>();
 
         await db.Database.EnsureCreatedAsync(cancellationToken);
+
+        IsPrepared = true;
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

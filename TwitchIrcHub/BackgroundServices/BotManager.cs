@@ -11,7 +11,7 @@ public class BotManager : TimedHostedService
     private static readonly List<IBotInstance> BotInstances = new();
 
     protected override TimeSpan Interval { get; } = TimeSpan.FromSeconds(30.0);
-    protected override TimeSpan FirstRunAfter { get; } = TimeSpan.FromSeconds(2.5);
+    protected override TimeSpan FirstRunAfter { get; } = TimeSpan.FromSeconds(0.1f);
 
     public BotManager(IServiceProvider services) : base(services)
     {
@@ -20,6 +20,9 @@ public class BotManager : TimedHostedService
 
     protected override async Task RunJobAsync(IServiceProvider serviceProvider, CancellationToken stoppingToken)
     {
+        while (!PrepareBotAndPrefetchData.IsPrepared) 
+            await Task.Delay(100, CancellationToken.None);
+
         IrcHubDbContext? db = serviceProvider.CreateScope().ServiceProvider.GetService<IrcHubDbContext>();
         if (db == null)
             return;

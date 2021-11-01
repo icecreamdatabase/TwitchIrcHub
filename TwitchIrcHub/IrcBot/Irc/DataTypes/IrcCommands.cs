@@ -26,8 +26,8 @@ public static class IrcCommands
     public const string Pong = "PONG";
     public const string PrivMsg = "PRIVMSG";
     public const string Reconnect = "RECONNECT";
-    public const string Roomstate = "ROOMSTATE";
+    public const string RoomState = "ROOMSTATE";
     public const string UserNotice = "USERNOTICE";
-    public const string Userstate = "USERSTATE";
+    public const string UserState = "USERSTATE";
     public const string Whisper = "WHISPER";
 }

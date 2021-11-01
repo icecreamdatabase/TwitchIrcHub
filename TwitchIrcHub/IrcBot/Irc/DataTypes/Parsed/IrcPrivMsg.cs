@@ -27,6 +27,7 @@ public class IrcPrivMsg
     /* --------------------- Non-tag but still required data --------------------- */
     /* --------------------------------------------------------------------------- */
     public string Message { get; }
+    public bool IsAction { get; }
     public string RoomName { get; }
     public string UserName { get; }
 
@@ -51,7 +52,6 @@ public class IrcPrivMsg
             throw new ArgumentOutOfRangeException(nameof(ircMessage), "Input is not a PrivMsg");
 
         Raw = ircMessage;
-
 
         // Try parsing all known tags.
         /* --------------------------------------------------------------------------- */
@@ -108,13 +108,13 @@ public class IrcPrivMsg
         /* --------------------------------------------------------------------------- */
         /* ------------------------------ Required tags ------------------------------ */
         /* --------------------------------------------------------------------------- */
-        BadgeInfo = ParseBadgeData(badgeInfo);
-        Badges = ParseBadgeData(badges);
+        BadgeInfo = IrcParseHelper.ParseBadgeData(badgeInfo);
+        Badges = IrcParseHelper.ParseBadgeData(badges);
         Color = color ?? "";
         DisplayName = displayName;
-        Emotes = ParseEmoteData(emotes);
-        FirstMsg = firstMsg != "0";
-        Flags = ParseFlags(flags);
+        Emotes = IrcParseHelper.ParseEmoteData(emotes);
+        FirstMsg = !string.IsNullOrEmpty(firstMsg) && firstMsg != "0";
+        Flags = IrcParseHelper.ParseFlags(flags);
         Id = id;
         RoomId = int.Parse(roomId);
         TmiSentTs = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(tmiSentTs)).UtcDateTime;
@@ -124,6 +124,12 @@ public class IrcPrivMsg
         /* --------------------- Non-tag but still required data --------------------- */
         /* --------------------------------------------------------------------------- */
         Message = ircMessage.IrcParameters[1];
+        if (Message.StartsWith("\u0001ACTION"))
+        {
+            Message = Message[8..^1];
+            IsAction = true;
+        }
+
         RoomName = ircMessage.IrcParameters[0][1..];
         UserName = ircMessage.IrcPrefix.Username;
 
@@ -135,53 +141,12 @@ public class IrcPrivMsg
         ClientNonce = clientNonce;
         CrowdChantParentMsgId = crowdChantParentMsgId;
         CustomRewardId = customRewardId;
-        EmoteOnly = emoteOnly != "0";
+        if (!string.IsNullOrEmpty(emoteOnly))
+            EmoteOnly = emoteOnly != "0";
         ReplyParentMsgId = replyParentMsgId;
         ReplyParentUserId = replyParentUserId;
         ReplyParentUserLogin = replyParentUserLogin;
         ReplyParentDisplayName = replyParentDisplayName;
         ReplyParentMsgBody = replyParentMsgBody;
-    }
-
-    private static Dictionary<string, int> ParseBadgeData(string? value)
-    {
-        if (value == null)
-            return new Dictionary<string, int>();
-
-        return value.Split(',')
-            .Where(input => input.Contains('/'))
-            .Select(input => input.Split('/'))
-            .ToDictionary(
-                split => split[0],
-                split => int.Parse(split[1])
-            );
-    }
-
-    private static Dictionary<string, string[]> ParseEmoteData(string? value)
-    {
-        if (value == null)
-            return new Dictionary<string, string[]>();
-
-        return value.Split('/')
-            .Where(input => input.Contains(':'))
-            .Select(input => input.Split(':'))
-            .ToDictionary(
-                split => split[0],
-                split => split[1].Split(',')
-            );
-    }
-
-    private static Dictionary<string, string[]> ParseFlags(string? value)
-    {
-        if (value == null)
-            return new Dictionary<string, string[]>();
-
-        return value.Split(',')
-            .Where(input => input.Contains(':'))
-            .Select(input => input.Split(':'))
-            .ToDictionary(
-                split => split[0],
-                split => split[1].Split('/')
-            );
     }
 }

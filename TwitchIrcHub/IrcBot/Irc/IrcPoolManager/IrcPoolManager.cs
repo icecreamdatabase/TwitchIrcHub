@@ -78,8 +78,8 @@ public class IrcPoolManager : IIrcPoolManager
         if (channelNames.Length == 0) return;
         List<string> channels = channelNames.ToList();
         foreach (IIrcClient ircClient in _ircReceiveClients
-            .Where(ircClient => ircClient.Channels.Count >= MaxChannelsPerIrcClient)
-        )
+                     .Where(ircClient => ircClient.Channels.Count >= MaxChannelsPerIrcClient)
+                )
         {
             int freeSlots = MaxChannelsPerIrcClient - ircClient.Channels.Count;
             List<string> newChannels = channels.Take(freeSlots).ToList();
@@ -125,16 +125,39 @@ public class IrcPoolManager : IIrcPoolManager
 
     public async Task NewIrcMessage(IrcMessage ircMessage)
     {
-        if (ircMessage.IrcCommand == IrcCommands.PrivMsg)
+        switch (ircMessage.IrcCommand)
         {
-            _logger.LogInformation("{Raw}", ircMessage.RawSource);
-            IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
-            _logger.LogInformation("{Command}: {Channel}: {Msg}",
-                ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
-        }
-        else
-        {
-            _logger.LogInformation("{Command}: {Raw}", ircMessage.IrcCommand, ircMessage.RawSource);
+            case IrcCommands.ClearChat:
+                break;
+            case IrcCommands.ClearMsg:
+                break;
+            case IrcCommands.GlobalUserstate:
+                IrcGlobalUserState ircGlobalUserState = new IrcGlobalUserState(ircMessage);
+                break;
+            case IrcCommands.HostTarget:
+                IrcHostTarget ircHostTarget = new IrcHostTarget(ircMessage);
+                break;
+            case IrcCommands.Notice:
+                IrcNotice ircNotice = new IrcNotice(ircMessage);
+                break;
+            case IrcCommands.PrivMsg:
+                _logger.LogInformation("{Raw}", ircMessage.RawSource);
+                IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
+                _logger.LogInformation("{Command}: {Channel}: {Msg}",
+                    ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
+                break;
+            case IrcCommands.RoomState:
+                IrcRoomState ircRoomState = new IrcRoomState(ircMessage);
+                break;
+            case IrcCommands.UserNotice:
+                IrcUserNotice ircUserNotice = new IrcUserNotice(ircMessage);
+                break;
+            case IrcCommands.UserState:
+                IrcUserState ircUserState = new IrcUserState(ircMessage);
+                break;
+            default:
+                _logger.LogInformation("{Command}: {Raw}", ircMessage.IrcCommand, ircMessage.RawSource);
+                break;
         }
     }
 

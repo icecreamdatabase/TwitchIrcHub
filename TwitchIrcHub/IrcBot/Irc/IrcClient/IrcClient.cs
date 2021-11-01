@@ -255,8 +255,8 @@ public class IrcClient : IIrcClient
             case IrcCommands.ClearChat:
             case IrcCommands.ClearMsg:
             case IrcCommands.HostTarget:
-            case IrcCommands.Userstate:
-            case IrcCommands.Roomstate:
+            case IrcCommands.UserState:
+            case IrcCommands.RoomState:
             case IrcCommands.UserNotice:
             case IrcCommands.Whisper:
             case IrcCommands.PrivMsg:
