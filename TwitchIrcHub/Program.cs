@@ -7,7 +7,7 @@ using TwitchIrcHub.Authentication.Policies;
 using TwitchIrcHub.Authentication.Policies.Handler;
 using TwitchIrcHub.Authentication.Policies.Requirements;
 using TwitchIrcHub.BackgroundServices;
-using TwitchIrcHub.Controllers.AuthController.AuthData;
+using TwitchIrcHub.Controllers.TwitchAppController.AuthData;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;

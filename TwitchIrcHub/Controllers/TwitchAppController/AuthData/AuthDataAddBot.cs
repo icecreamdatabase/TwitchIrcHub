@@ -1,4 +1,4 @@
-﻿namespace TwitchIrcHub.Controllers.AuthController.AuthData;
+﻿namespace TwitchIrcHub.Controllers.TwitchAppController.AuthData;
 
 public class AuthDataAddBot : AuthData
 {

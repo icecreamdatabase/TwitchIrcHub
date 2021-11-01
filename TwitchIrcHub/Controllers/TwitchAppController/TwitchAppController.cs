@@ -1,22 +1,21 @@
-﻿using System.Linq;
-using System.Net;
+﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using TwitchIrcHub.Controllers.AuthController.AuthData;
+using TwitchIrcHub.Controllers.TwitchAppController.AuthData;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Auth;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TwitchIrcHub.Model;
 using TwitchIrcHub.Model.Schema;
 
-namespace TwitchIrcHub.Controllers.AuthController;
+namespace TwitchIrcHub.Controllers.TwitchAppController;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthController : ControllerBase
+public class TwitchAppController : ControllerBase
 {
-    private readonly ILogger<AuthController> _logger;
+    private readonly ILogger<TwitchAppController> _logger;
     private readonly IrcHubDbContext _ircHubDbContext;
 
-    public AuthController(ILogger<AuthController> logger, IrcHubDbContext ircHubDbContext)
+    public TwitchAppController(ILogger<TwitchAppController> logger, IrcHubDbContext ircHubDbContext)
     {
         _logger = logger;
         _ircHubDbContext = ircHubDbContext;
