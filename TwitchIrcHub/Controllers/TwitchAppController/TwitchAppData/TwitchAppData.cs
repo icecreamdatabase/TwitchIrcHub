@@ -1,8 +1,8 @@
 ﻿using TwitchIrcHub.Model;
 
-namespace TwitchIrcHub.Controllers.TwitchAppController.AuthData;
+namespace TwitchIrcHub.Controllers.TwitchAppController.TwitchAppData;
 
-public class AuthData
+public class TwitchAppData
 {
     private protected const string BaseUrl = "https://id.twitch.tv/oauth2/authorize";
     private protected static string ClientId => BotDataAccess.ClientId;

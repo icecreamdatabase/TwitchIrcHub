@@ -11,4 +11,5 @@ public interface IBotInstanceData
 
     public Task Init(int botUserId);
     public Task IntervalPing();
+    public Task ValidateAccessToken();
 }

@@ -5,7 +5,7 @@ namespace TwitchIrcHub.Controllers.TwitchAppController;
 
 [SuppressMessage("ReSharper", "UnusedMember.Global")]
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-public class AuthRegisterInput
+public class TwitchAppRegisterInput
 {
     [FromQuery(Name = "code")]
     public string? Code { get; set; }

@@ -1,6 +1,6 @@
-﻿namespace TwitchIrcHub.Controllers.TwitchAppController.AuthData;
+﻿namespace TwitchIrcHub.Controllers.TwitchAppController.TwitchAppData;
 
-public class AuthDataAddBot : AuthData
+public class TwitchAppDataAddBot : TwitchAppData
 {
     private const string ReponseType = "code";
     private const string RedirectUrlAppend = "/auth/register/bot";

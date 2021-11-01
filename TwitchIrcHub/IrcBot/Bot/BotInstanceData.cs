@@ -57,7 +57,7 @@ public class BotInstanceData : IBotInstanceData
     private const int MaxRefreshRetryCountBeforeException = 10;
     private int _refreshRetryCount;
 
-    private async Task ValidateAccessToken()
+    public async Task ValidateAccessToken()
     {
         _currentlyValidatingOrRefreshing = true;
         try

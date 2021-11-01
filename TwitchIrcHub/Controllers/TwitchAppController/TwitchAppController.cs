@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using TwitchIrcHub.Controllers.TwitchAppController.AuthData;
+using TwitchIrcHub.Controllers.TwitchAppController.TwitchAppData;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Auth;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TwitchIrcHub.Model;
@@ -32,7 +32,7 @@ public class TwitchAppController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Redirect)]
     public ActionResult GetLinkBot()
     {
-        return Redirect(AuthDataAddBot.FullUrl);
+        return Redirect(TwitchAppDataAddBot.FullUrl);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public class TwitchAppController : ControllerBase
     /// <response code="404">Channel not found.</response>
     [HttpGet("Register/Bot")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
-    public async Task<ActionResult> RegisterBot([FromQuery] AuthRegisterInput input)
+    public async Task<ActionResult> RegisterBot([FromQuery] TwitchAppRegisterInput input)
     {
         if (!string.IsNullOrEmpty(input.Error) || string.IsNullOrEmpty(input.Code))
             return BadRequest(input.ErrorDescription);
@@ -63,13 +63,13 @@ public class TwitchAppController : ControllerBase
         if (string.IsNullOrEmpty(validateResult?.UserId))
             return Forbid();
 
-        bool hasAllRequiredScopes = AuthDataAddBot.Scopes
+        bool hasAllRequiredScopes = TwitchAppDataAddBot.Scopes
             .All(requiredScope => validateResult.Scopes
                 .Select(s => s.ToLowerInvariant())
                 .Contains(requiredScope.ToLowerInvariant())
             );
         if (!hasAllRequiredScopes)
-            return Problem($"Missing scopes. Registering a bot requires: {string.Join(", ", AuthDataAddBot.Scopes)}",
+            return Problem($"Missing scopes. Registering a bot requires: {string.Join(", ", TwitchAppDataAddBot.Scopes)}",
                 null, (int)HttpStatusCode.Forbidden);
 
         Bot? entity = _ircHubDbContext.Bots.FirstOrDefault(bot => bot.UserId == int.Parse(validateResult.UserId));

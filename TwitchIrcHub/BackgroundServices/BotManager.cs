@@ -67,4 +67,9 @@ public class BotManager : TimedHostedService
             botInstance.Dispose();
         }
     }
+
+    public static IBotInstance? GetBotInstance(int botUserId)
+    {
+       return BotInstances.FirstOrDefault(iBotInstance => iBotInstance.BotInstanceData.UserId == botUserId);
+    }
 }

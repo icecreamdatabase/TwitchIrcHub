@@ -7,7 +7,7 @@ using TwitchIrcHub.Authentication.Policies;
 using TwitchIrcHub.Authentication.Policies.Handler;
 using TwitchIrcHub.Authentication.Policies.Requirements;
 using TwitchIrcHub.BackgroundServices;
-using TwitchIrcHub.Controllers.TwitchAppController.AuthData;
+using TwitchIrcHub.Controllers.TwitchAppController.TwitchAppData;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
@@ -115,11 +115,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TwitchIrcHub v1"));
     app.UseDeveloperExceptionPage();
-    AuthData.RedirectUrl = AuthData.RedirectUrlDevelopment;
+    TwitchAppData.RedirectUrl = TwitchAppData.RedirectUrlDevelopment;
 }
 else
 {
-    AuthData.RedirectUrl = AuthData.RedirectUrlProduction;
+    TwitchAppData.RedirectUrl = TwitchAppData.RedirectUrlProduction;
 }
 
 //app.UseHttpsRedirection();
