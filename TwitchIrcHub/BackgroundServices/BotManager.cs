@@ -27,7 +27,7 @@ public class BotManager : TimedHostedService
         if (db == null)
             return;
 
-        _logger.LogInformation("Checking bots ...");
+        _logger.LogDebug("Checking bots ...");
 
         List<int> activeBotIds = BotInstances.Select(bot => bot.BotInstanceData.UserId).ToList();
         List<int> requiredBotIds = db.Bots.Where(bot => bot.Enabled).Select(bot => bot.UserId).ToList();

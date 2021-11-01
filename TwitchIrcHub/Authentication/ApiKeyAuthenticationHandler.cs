@@ -62,6 +62,8 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             
         List<Claim> claims = new()
         {
+            new Claim(ClaimTypes.Name, app.RegisteredAppId.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, app.RegisteredAppId.ToString()),
             new Claim(AuthClaims.AppId, app.RegisteredAppId.ToString()),
             new Claim(AuthClaims.AppName, app.AppName),
             new Claim(AuthClaims.AppKey, app.Key)
