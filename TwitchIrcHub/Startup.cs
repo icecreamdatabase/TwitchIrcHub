@@ -163,6 +163,10 @@ public class Startup
         );
 
         // Inject ServiceProvider into static BotDataAccess class
+        // This is a horrible anti-pattern
+        // https://blog.ploeh.dk/2010/02/03/ServiceLocatorisanAnti-Pattern/
+        // https://blog.ploeh.dk/2014/05/15/service-locator-violates-solid/
+        // But because we need access to BotDataAccess from a static context I'm calling this a necessary evil.
         BotDataAccess.ServiceProvider = app.ApplicationServices;
 
         //app.UseHttpsRedirection(); //This breaks UseCors
