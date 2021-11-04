@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using TwitchIrcHub.ExternalApis.Discord;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
@@ -145,6 +148,7 @@ public class IrcPoolManager : IIrcPoolManager
                 IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
                 _logger.LogInformation("{Command}: {Channel}: {Msg}",
                     ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
+                //DiscordLogger.Log(LogLevel.Information, JsonSerializer.Serialize(ircMessage, new JsonSerializerOptions { WriteIndented = true }));
                 break;
             case IrcCommands.RoomState:
                 IrcRoomState ircRoomState = new IrcRoomState(ircMessage);

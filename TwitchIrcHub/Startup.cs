@@ -9,6 +9,7 @@ using TwitchIrcHub.Authentication.Policies.Handler;
 using TwitchIrcHub.Authentication.Policies.Requirements;
 using TwitchIrcHub.BackgroundServices;
 using TwitchIrcHub.Controllers.TwitchAppController.TwitchAppData;
+using TwitchIrcHub.ExternalApis.Discord;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
@@ -36,7 +37,7 @@ public class Startup
     {
         Configuration = configuration;
         HostingEnvironment = hostingEnvironment;
-        //DiscordWebhook.SetWebhooks(Configuration.GetSection("DiscordWebhooks"));
+        DiscordWebhook.SetWebhooks(Configuration.GetSection("DiscordWebhooks"));
     }
 
     // This method gets called by the runtime. Use this method to add services to the container.
