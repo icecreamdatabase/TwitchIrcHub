@@ -29,8 +29,8 @@ public static class IrcParser
             remainder = remainder[(spaceIdx + 1)..];
         }
 
-        IrcMessagePrefix ircPrefix;
-        string ircPrefixRaw;
+        IrcMessagePrefix? ircPrefix;
+        string? ircPrefixRaw;
         if (remainder.StartsWith(":"))
         {
             remainder = remainder[1..]; // remove : sign
@@ -45,15 +45,10 @@ public static class IrcParser
             if (ircPrefixRaw.Length == 0)
                 return null;
 
-            if (!ircPrefixRaw.Contains("@"))
+            if (!ircPrefixRaw.Contains('@'))
             {
                 // just a hostname or just a nickname
-                ircPrefix = new IrcMessagePrefix
-                {
-                    Nickname = null,
-                    Username = null,
-                    Hostname = ircPrefixRaw
-                };
+                ircPrefix = new IrcMessagePrefix(null, null, ircPrefixRaw);
             }
             else
             {
@@ -68,13 +63,13 @@ public static class IrcParser
                 // split on @ first, then on !
                 int atIndex = ircPrefixRaw.IndexOf("@", StringComparison.Ordinal);
                 string nickAndUser = ircPrefixRaw[..atIndex];
-                string host = ircPrefixRaw[(atIndex + 1)..];
+                string? host = ircPrefixRaw[(atIndex + 1)..];
 
                 // now nickAndUser is either "nick" or "nick!user"
                 // => split on !
                 int exclamationIndex = nickAndUser.IndexOf("!", StringComparison.Ordinal);
                 string nick;
-                string user;
+                string? user;
                 if (exclamationIndex < 0)
                 {
                     // no ! found
@@ -90,12 +85,7 @@ public static class IrcParser
                 if (host.Length == 0 || nick.Length == 0 || user is {Length: 0})
                     return null;
 
-                ircPrefix = new IrcMessagePrefix
-                {
-                    Nickname = nick,
-                    Username = user,
-                    Hostname = host
-                };
+                ircPrefix = new IrcMessagePrefix(nick, user, host);
             }
         }
         else
@@ -113,7 +103,6 @@ public static class IrcParser
         {
             // no space after commands, i.e. no params.
             ircCommand = remainder;
-            ;
         }
         else
         {
@@ -122,7 +111,7 @@ public static class IrcParser
             remainder = remainder[(spaceAfterCommandIdx + 1)..];
 
             // introduce a new variable so it can be null (typescript shenanigans)
-            string paramsRemainder = remainder;
+            string? paramsRemainder = remainder;
             while (paramsRemainder != null)
             {
                 if (paramsRemainder.StartsWith(":"))
@@ -162,23 +151,13 @@ public static class IrcParser
 
         ircCommand = ircCommand.ToUpperInvariant();
 
-        return new IrcMessage
-        {
-            RawSource = line,
-            IrcPrefixRaw = ircPrefixRaw,
-            IrcPrefix = ircPrefix,
-            IrcCommand = ircCommand,
-            IrcParameters = ircParameters,
-            IrcMessageTags = ircTags,
-        };
+        return new IrcMessage(line, ircPrefixRaw, ircPrefix, ircCommand, ircParameters, ircTags);
     }
 
     private static Dictionary<string, string> ParseTags(string tagsSrc)
     {
-        if (tagsSrc == null)
-        {
+        if (string.IsNullOrEmpty(tagsSrc))
             return new Dictionary<string, string>();
-        }
 
         return tagsSrc
             .Split(';')

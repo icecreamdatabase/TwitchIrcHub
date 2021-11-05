@@ -118,7 +118,7 @@ public class IrcUserNotice
             throw new Exception($"USERNOTICE without valid userId:\n{ircMessage.RawSource}");
         if (ircMessage.IrcParameters.Count < 1)
             throw new Exception($"USERNOTICE without valid roomName:\n{ircMessage.RawSource}");
-        if (string.IsNullOrEmpty(ircMessage.IrcPrefix.Username))
+        if (string.IsNullOrEmpty(ircMessage.IrcPrefix?.Username))
             throw new Exception($"USERNOTICE without valid userName:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(tmiSentTs))
             throw new Exception($"USERNOTICE without valid timestamp:\n{ircMessage.RawSource}");
@@ -168,7 +168,7 @@ public class IrcUserNotice
         MsgParamSenderLogin = msgParamSenderLogin;
         MsgParamSenderName = msgParamSenderName;
         MsgParamShouldShareStreak = msgParamShouldShareStreak;
-        MsgParamStreakMonths = msgParamShouldShareStreak;
+        MsgParamStreakMonths = msgParamStreakMonths;
         MsgParamSubPlan = msgParamSubPlan;
         MsgParamSubPlanName = msgParamSubPlanName;
         MsgParamViewerCount = msgParamViewerCount;

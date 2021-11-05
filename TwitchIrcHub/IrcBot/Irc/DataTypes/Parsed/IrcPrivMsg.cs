@@ -99,7 +99,7 @@ public class IrcPrivMsg
             throw new Exception($"PRIVMSG without valid userId:\n{ircMessage.RawSource}");
         if (ircMessage.IrcParameters.Count < 2)
             throw new Exception($"PRIVMSG without valid roomName or message:\n{ircMessage.RawSource}");
-        if (string.IsNullOrEmpty(ircMessage.IrcPrefix.Username))
+        if (string.IsNullOrEmpty(ircMessage.IrcPrefix?.Username))
             throw new Exception($"PRIVMSG without valid userName:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(tmiSentTs))
             throw new Exception($"PRIVMSG without valid timestamp:\n{ircMessage.RawSource}");
