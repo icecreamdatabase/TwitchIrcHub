@@ -10,13 +10,7 @@ namespace TwitchIrcHub.Authentication;
 
 public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
 {
-    /// <summary>
-    /// Will be written into <see cref="ClaimTypes"/>.<see cref="ClaimTypes.NameIdentifier"/>
-    /// and is used all around the application for auth in regards to a channel
-    /// </summary>
-    private const string RoomIdQueryStringName = "roomId";
-
-    private const string AccessTokenQueryStringName = "access_token";
+    private const string AccessTokenQueryStringName = "appIdKey";
     private const string ApiKeyHeaderName = "Authorization";
     private readonly IrcHubDbContext _ircHubDbContext;
 
