@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using TwitchIrcHub.IrcBot.Irc.DataTypes.Parsed;
 
 namespace TwitchIrcHub.Hubs.IrcHub;
 
@@ -29,12 +28,5 @@ public class IrcHub : Hub<IIrcHub>
         Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} (AppId: {Context.UserIdentifier})");
         ConnectedClients.Remove(Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
-    }
-
-    public static async Task NewIrcPrivMsg(IHubContext<IrcHub, IIrcHub> context, IrcPrivMsg ircPrivMsg,
-        IEnumerable<int> appIds)
-    {
-        foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcPrivMsg(ircPrivMsg);
     }
 }

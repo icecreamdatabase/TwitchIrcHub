@@ -251,7 +251,7 @@ public class IrcClient : IIrcClient
             /* ---------------------- SignalR subscribable commands ---------------------- */
             /* --------------------------------------------------------------------------- */
             case IrcCommands.Notice:
-            case IrcCommands.GlobalUserstate:
+            case IrcCommands.GlobalUserState:
             case IrcCommands.ClearChat:
             case IrcCommands.ClearMsg:
             case IrcCommands.HostTarget:

@@ -141,41 +141,45 @@ public class IrcPoolManager : IIrcPoolManager
             {
                 IrcClearChat ircClearChat = new IrcClearChat(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircClearChat.RoomId);
+                await IrcHubToClients.NewIrcClearChat(IrcHubContext, ircClearChat, appIds);
                 break;
             }
             case IrcCommands.ClearMsg:
             {
                 IrcClearMsg ircClearMsg = new IrcClearMsg(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircClearMsg.RoomId);
+                await IrcHubToClients.NewIrcClearMsg(IrcHubContext, ircClearMsg, appIds);
                 break;
             }
-            case IrcCommands.GlobalUserstate:
+            case IrcCommands.GlobalUserState:
             {
                 IrcGlobalUserState ircGlobalUserState = new IrcGlobalUserState(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections();
+                await IrcHubToClients.NewIrcGlobalUserState(IrcHubContext, ircGlobalUserState, appIds);
                 break;
             }
             case IrcCommands.HostTarget:
             {
                 IrcHostTarget ircHostTarget = new IrcHostTarget(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircHostTarget.RoomName);
+                await IrcHubToClients.NewIrcHostTarget(IrcHubContext, ircHostTarget, appIds);
                 break;
             }
             case IrcCommands.Notice:
             {
                 IrcNotice ircNotice = new IrcNotice(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircNotice.RoomName);
+                await IrcHubToClients.NewIrcNotice(IrcHubContext, ircNotice, appIds);
                 break;
             }
             case IrcCommands.PrivMsg:
             {
                 _logger.LogInformation("{Raw}", ircMessage.RawSource);
                 IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
-                _logger.LogInformation("{Command}: {Channel}: {Msg}",
-                    ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
+                //_logger.LogInformation("{Command}: {Channel}: {Msg}", ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
 
                 List<int> appIds = GetAppIdsFromConnections(ircPrivMsg.RoomId);
-                await IrcHub.NewIrcPrivMsg(IrcHubContext, ircPrivMsg, appIds);
+                await IrcHubToClients.NewIrcPrivMsg(IrcHubContext, ircPrivMsg, appIds);
 
                 //DiscordLogger.Log(LogLevel.Information, JsonSerializer.Serialize(ircPrivMsg, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull}));
                 break;
@@ -184,18 +188,21 @@ public class IrcPoolManager : IIrcPoolManager
             {
                 IrcRoomState ircRoomState = new IrcRoomState(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircRoomState.RoomId);
+                await IrcHubToClients.NewIrcRoomState(IrcHubContext, ircRoomState, appIds);
                 break;
             }
             case IrcCommands.UserNotice:
             {
                 IrcUserNotice ircUserNotice = new IrcUserNotice(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircUserNotice.RoomId);
+                await IrcHubToClients.NewIrcUserNotice(IrcHubContext, ircUserNotice, appIds);
                 break;
             }
             case IrcCommands.UserState:
             {
                 IrcUserState ircUserState = new IrcUserState(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircUserState.RoomName);
+                await IrcHubToClients.NewIrcUserState(IrcHubContext, ircUserState, appIds);
                 break;
             }
             default:

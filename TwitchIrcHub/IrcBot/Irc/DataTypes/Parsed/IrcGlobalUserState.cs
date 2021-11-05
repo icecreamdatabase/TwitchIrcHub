@@ -21,7 +21,7 @@ public class IrcGlobalUserState
 
     public IrcGlobalUserState(IrcMessage ircMessage)
     {
-        if (ircMessage.IrcCommand != IrcCommands.GlobalUserstate)
+        if (ircMessage.IrcCommand != IrcCommands.GlobalUserState)
             throw new ArgumentOutOfRangeException(nameof(ircMessage), "Input is not a GlobalUserState");
 
         Raw = ircMessage;

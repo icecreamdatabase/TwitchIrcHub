@@ -17,7 +17,7 @@ public static class IrcCommands
     public const string Cap = "CAP";
     public const string ClearChat = "CLEARCHAT";
     public const string ClearMsg = "CLEARMSG";
-    public const string GlobalUserstate = "GLOBALUSERSTATE";
+    public const string GlobalUserState = "GLOBALUSERSTATE";
     public const string HostTarget = "HOSTTARGET";
     public const string Join = "JOIN";
     public const string Notice = "NOTICE";
