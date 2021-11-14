@@ -24,6 +24,12 @@ public class Bot
     public bool EnabledWhisperLog { get; set; } = true;
 
     [Required]
+    public bool Known { get; set; } = false;
+
+    [Required]
+    public bool Verified { get; set; } = false;
+
+    [Required]
     [MaxLength(30)]
     public string AccessToken { get; set; } = null!;
 
@@ -44,6 +50,8 @@ public class Bot
         {
             entity.Property(e => e.Enabled).HasDefaultValue(true);
             entity.Property(e => e.EnabledWhisperLog).HasDefaultValue(true);
+            entity.Property(e => e.Known).HasDefaultValue(false);
+            entity.Property(e => e.Verified).HasDefaultValue(false);
         });
     }
 }
