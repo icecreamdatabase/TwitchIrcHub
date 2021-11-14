@@ -4,21 +4,21 @@ using TwitchIrcHub.Authentication.Policies;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Users.DataTypes;
 
-namespace TwitchIrcHub.Controllers.IdLoginTranslationController;
+namespace TwitchIrcHub.Controllers.TwitchUsersController;
 
 [ApiController]
 [Route("[controller]")]
 [Authorize(Policy = Policies.IsRegisteredApp)]
-public class IdLoginTranslationController : ControllerBase
+public class TwitchUsersController : ControllerBase
 {
-    private readonly ILogger<IdLoginTranslationController> _logger;
+    private readonly ILogger<TwitchUsersController> _logger;
 
-    public IdLoginTranslationController(ILogger<IdLoginTranslationController> logger)
+    public TwitchUsersController(ILogger<TwitchUsersController> logger)
     {
         _logger = logger;
     }
 
-    [HttpGet("Users")]
+    [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<TwitchUsersResult>>> Users(
         [FromQuery(Name = "id")] List<string> ids,
@@ -35,24 +35,16 @@ public class IdLoginTranslationController : ControllerBase
         [FromQuery(Name = "id")] List<string> ids
     )
     {
-        List<TwitchUsersResult>? users = await TwitchUsers.Users(ids);
-        return Ok(users == null
-            ? new Dictionary<string, string>()
-            : users.ToDictionary(user => user.Id, user => user.Login)
-        );
+        return Ok(await TwitchUsers.IdsToLoginsWithCache(ids));
     }
-    
+
     [HttpGet("LoginToId")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<Dictionary<string, string>>> LoginToId(
         [FromQuery(Name = "login")] List<string> logins
     )
     {
-        List<TwitchUsersResult>? users = await TwitchUsers.Users(logins: logins);
-        return Ok(users == null
-            ? new Dictionary<string, string>()
-            : users.ToDictionary(user => user.Login, user => user.Id)
-        );
+        return Ok(await TwitchUsers.LoginsToIdsWithCache(logins));
     }
 
     [HttpPut]
