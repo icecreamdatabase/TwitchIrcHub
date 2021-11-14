@@ -32,6 +32,8 @@ public class IrcPoolManager : IIrcPoolManager
     private readonly List<IIrcClient> _ircReceiveClients = new();
     private const int MaxChannelsPerIrcClient = 200;
 
+    private readonly Dictionary<string, string> _previousMessageInChannel = new();
+
     public string BotUsername => _botInstance.BotInstanceData.UserName;
     public string BotOauth => _botInstance.BotInstanceData.AccessToken;
 
@@ -136,18 +138,58 @@ public class IrcPoolManager : IIrcPoolManager
     //@client-nonce=xxx;reply-parent-msg-id=xxx PRIVMSG #channel :xxxxxx `
     public async Task SendMessageNoQueue(PrivMsgToTwitch privMsgToTwitch)
     {
-        // Advance send client index if needed
+        // TODO: Don't hardcode mod status
+        bool useModRateLimit = false;
+
+        /* ---------- Ratelimit ---------- */
+        await IrcBuckets.WaitForMessageTicket(useModRateLimit);
+
+        /* ---------- Global cooldown as non-useModRateLimit ---------- */
+        if (!useModRateLimit)
+        {
+            // TODO: global 1s cooldown if not vip / mod / broadcaster
+        }
+
+        HandleMessageCleanup(privMsgToTwitch);
+        HandleDuplicateMessage(privMsgToTwitch);
+
+        /* ---------- Advance send client index if needed ---------- */
         if (!privMsgToTwitch.UseSameSendConnectionAsPreviousMsg)
             _ircLastUsedSendClientIndex = (_ircLastUsedSendClientIndex + 1) % _ircSendClients.Count;
 
-        // TODO: Don't hardcode mod status
-        await IrcBuckets.WaitForMessageTicket(false);
-        
-        // TODO: global 1s cooldown if not vip / mod / broadcaster
-        // TODO: message identical check \u{E0000}
+        _logger.LogInformation("{Line}", privMsgToTwitch.ToString());
 
-        // Send message
+        /* ---------- Send message ---------- */
         await _ircSendClients[_ircLastUsedSendClientIndex].SendLine(privMsgToTwitch.ToString());
+    }
+
+    private static void HandleMessageCleanup(PrivMsgToTwitch privMsgToTwitch)
+    {
+        privMsgToTwitch.Message = privMsgToTwitch.Message.Trim();
+    }
+
+    private void HandleDuplicateMessage(PrivMsgToTwitch privMsgToTwitch)
+    {
+        // Is the message identical
+        if (_previousMessageInChannel.ContainsKey(privMsgToTwitch.RoomName) &&
+            privMsgToTwitch.Message == _previousMessageInChannel[privMsgToTwitch.RoomName]
+           )
+        {
+            // If the message is an ACTION we want to ignore the first space after the .me /me
+            // for the startIndex we technically need to check for index out of bound.
+            // But we always trim beforehand and therefore the space can never be the last character in the string.
+            int spaceIndex = privMsgToTwitch.Message.StartsWith(".me ") || privMsgToTwitch.Message.StartsWith("/me ")
+                ? privMsgToTwitch.Message.IndexOf(' ', privMsgToTwitch.Message.IndexOf(' ') + 1)
+                : privMsgToTwitch.Message.IndexOf(' ');
+            if (spaceIndex == -1)
+                // No space found, fall back to the old magic character.
+                privMsgToTwitch.Message += "\U000E0000";
+            else
+                // Insert a second space at the position of the first space.
+                privMsgToTwitch.Message = privMsgToTwitch.Message.Insert(spaceIndex, " ");
+        }
+
+        _previousMessageInChannel[privMsgToTwitch.RoomName] = privMsgToTwitch.Message;
     }
 
     private IIrcClient? GetIrcClientOfChannel(string channel)

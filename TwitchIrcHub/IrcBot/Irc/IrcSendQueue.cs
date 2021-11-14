@@ -1,30 +1,32 @@
-﻿using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
+﻿using System.Collections.Concurrent;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 
 namespace TwitchIrcHub.IrcBot.Irc;
 
 public class IrcSendQueue
 {
     private readonly IrcPoolManager.IrcPoolManager _ircPoolManager;
+    private readonly ConcurrentQueue<PrivMsgToTwitch> _queue = new();
 
-    private Task _previousTask = Task.FromResult(true);
-    private readonly object _key = new();
+    private Task _currentCheckQueueTask = Task.CompletedTask;
 
     public IrcSendQueue(IrcPoolManager.IrcPoolManager ircPoolManager)
     {
         _ircPoolManager = ircPoolManager;
     }
 
-    public Task Enqueue(PrivMsgToTwitch privMsgToTwitch)
+    public void Enqueue(PrivMsgToTwitch privMsgToTwitch)
     {
-        lock (_key)
+        _queue.Enqueue(privMsgToTwitch);
+        if (_currentCheckQueueTask.IsCompleted)
         {
-            _previousTask = _previousTask.ContinueWith(
-                _ => _ircPoolManager.SendMessageNoQueue(privMsgToTwitch),
-                CancellationToken.None,
-                TaskContinuationOptions.None,
-                TaskScheduler.Default
-            );
-            return _previousTask;
+            _currentCheckQueueTask = Task.Run(CheckQueue);
         }
+    }
+
+    private async Task CheckQueue()
+    {
+        while (_queue.TryDequeue(out PrivMsgToTwitch? privMsgToTwitch))
+            await _ircPoolManager.SendMessageNoQueue(privMsgToTwitch);
     }
 }

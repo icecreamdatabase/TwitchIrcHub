@@ -20,7 +20,7 @@ public class BotManager : TimedHostedService
 
     protected override async Task RunJobAsync(IServiceProvider serviceProvider, CancellationToken stoppingToken)
     {
-        while (!PrepareBotAndPrefetchData.IsPrepared) 
+        while (!PrepareBotAndPrefetchData.IsPrepared)
             await Task.Delay(100, CancellationToken.None);
 
         IrcHubDbContext? db = serviceProvider.CreateScope().ServiceProvider.GetService<IrcHubDbContext>();
@@ -61,15 +61,20 @@ public class BotManager : TimedHostedService
         if (botUserIds.Length == 0)
             return;
 
-        foreach (IBotInstance botInstance in BotInstances.Where(bot => botUserIds.Contains(bot.BotInstanceData.UserId)))
+        lock (BotInstances)
         {
-            BotInstances.Remove(botInstance);
-            botInstance.Dispose();
+            foreach (IBotInstance botInstance in BotInstances
+                         .Where(bot => botUserIds.Contains(bot.BotInstanceData.UserId))
+                    )
+            {
+                BotInstances.Remove(botInstance);
+                botInstance.Dispose();
+            }
         }
     }
 
     public static IBotInstance? GetBotInstance(int botUserId)
     {
-       return BotInstances.FirstOrDefault(iBotInstance => iBotInstance.BotInstanceData.UserId == botUserId);
+        return BotInstances.FirstOrDefault(iBotInstance => iBotInstance.BotInstanceData.UserId == botUserId);
     }
 }

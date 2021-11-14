@@ -23,12 +23,12 @@ public class IrcBuckets
         IrcChannelBucket = new IrcPrivMsgBucket(
             limits.IrcChannelMessageBucketLimitUser,
             limits.IrcChannelMessageBucketLimitMod,
-            Limits.IrcJoinBucketPerXSeconds
+            Limits.IrcMessageBucketPerXSeconds
         );
         IrcGlobalBucket = new IrcPrivMsgBucket(
             limits.IrcGlobalMessageBucketLimitUser,
             limits.IrcGlobalMessageBucketLimitMod,
-            Limits.IrcJoinBucketPerXSeconds
+            Limits.IrcMessageBucketPerXSeconds
         );
     }
 

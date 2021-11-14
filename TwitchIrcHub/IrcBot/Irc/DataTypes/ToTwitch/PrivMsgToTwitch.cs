@@ -6,7 +6,7 @@ public class PrivMsgToTwitch
 {
     public int BotUserId { get; }
     public string RoomName { get; }
-    public string Message { get; }
+    public string Message { get; set; }
     public string? ClientNonce { get; }
     public string? ReplyParentMsgId { get; }
     public bool UseSameSendConnectionAsPreviousMsg { get; set; }

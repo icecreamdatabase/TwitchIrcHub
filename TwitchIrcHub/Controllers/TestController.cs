@@ -35,8 +35,7 @@ public class TestController : ControllerBase
             messages.Add(new PrivMsgToTwitch(
                     botUserId,
                     "icdb",
-                    $"test{i:00}",
-                    useSameSendConnectionAsPreviousMsg: true
+                    $"test{i:00}"
                 )
             );
         }
