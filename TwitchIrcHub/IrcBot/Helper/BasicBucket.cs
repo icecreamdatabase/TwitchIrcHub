@@ -5,13 +5,13 @@ public class BasicBucket
     private readonly int _limit;
     private readonly int _perXSeconds;
     private int _usedTickets;
-    private const float LimitBuffer = 0.9f;
+    private const float LimitBuffer = 0.8f;
     private const float TimeBuffer = 1.1f;
 
-    public BasicBucket(int limit, int perXSeconds = 30)
+    public BasicBucket(int limit, int perXSeconds)
     {
-        _limit = (int) (limit * LimitBuffer);
-        _perXSeconds = (int) (perXSeconds * TimeBuffer);
+        _limit = (int)(limit * LimitBuffer);
+        _perXSeconds = (int)(perXSeconds * TimeBuffer);
     }
 
     public int TicketsRemaining => _limit - _usedTickets;

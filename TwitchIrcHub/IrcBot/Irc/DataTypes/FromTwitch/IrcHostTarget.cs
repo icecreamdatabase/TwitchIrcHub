@@ -31,8 +31,8 @@ public class IrcHostTarget
         string[] trailingSplit = ircMessage.IrcParameters[1].Split(" ", 2);
         if (trailingSplit.Length >= 1 && trailingSplit[0] != "-")
             HostReceiverRoomName = trailingSplit[0];
-        if (trailingSplit.Length >= 2)
-            NumberOfViews = int.Parse(trailingSplit[1]);
+        if (trailingSplit.Length >= 2 && int.TryParse(trailingSplit[1], out int parsedNumberOfViews))
+            NumberOfViews = parsedNumberOfViews;
         RoomName = ircMessage.IrcParameters[0][1..];
     }
 }

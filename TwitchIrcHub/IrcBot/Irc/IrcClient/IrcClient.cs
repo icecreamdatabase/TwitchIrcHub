@@ -105,10 +105,7 @@ public class IrcClient : IIrcClient
             _tcpClient?.Close();
             _actualChannels.Clear();
 
-            while (!_ircPoolManager.AuthenticateBucket.TakeTicket())
-            {
-                await Task.Delay(100, stoppingToken);
-            }
+            await _ircPoolManager.IrcBuckets.WaitForAuthenticateTicket(stoppingToken);
 
             _tcpClient = new TcpClient();
             await _tcpClient.ConnectAsync(Server, Port, stoppingToken);
@@ -398,7 +395,7 @@ public class IrcClient : IIrcClient
         List<string> channelsToChange = Channels.Except(_actualChannels).ToList();
 
         bool hasChanged = false;
-        while (channelsToChange.Any() && _ircPoolManager.JoinBucket.TakeTicket())
+        while (channelsToChange.Any() && _ircPoolManager.IrcBuckets.JoinBucket.TakeTicket())
         {
             StringBuilder ircCommand = new StringBuilder("Join ");
             while (channelsToChange.Any() && ircCommand.Length < 450)
@@ -424,7 +421,7 @@ public class IrcClient : IIrcClient
             hasChanged = true;
         }
 
-        while (!_ircPoolManager.JoinBucket.TicketAvailable && channelsToChange.Any())
+        while (!_ircPoolManager.IrcBuckets.JoinBucket.TicketAvailable && channelsToChange.Any())
             await Task.Delay(25);
         await Task.Delay(100);
 

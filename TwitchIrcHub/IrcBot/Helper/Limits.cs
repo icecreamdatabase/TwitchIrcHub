@@ -46,7 +46,7 @@ public class Limits
     public int IrcAuthBucketLimit { get; private init; }
     public const int IrcAuthBucketPerXSeconds = 10;
     public int IrcJoinBucketLimit { get; private init; }
-    public int IrcJoinBucketPerXSeconds { get; } = 10;
+    public const int IrcJoinBucketPerXSeconds = 10;
         
     /* IRC message bucket */
     public int IrcChannelMessageBucketLimitUser { get; private init; }

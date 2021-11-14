@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using System.Net;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
 using TwitchIrcHub.Hubs.IrcHub;
@@ -31,14 +32,13 @@ public class IrcPoolManager : IIrcPoolManager
     private readonly List<IIrcClient> _ircReceiveClients = new();
     private const int MaxChannelsPerIrcClient = 200;
 
-    public BasicBucket AuthenticateBucket { get; } = new(20, 10);
-    public BasicBucket JoinBucket { get; } = new(20, 10);
-
     public string BotUsername => _botInstance.BotInstanceData.UserName;
     public string BotOauth => _botInstance.BotInstanceData.AccessToken;
 
     private BotInstance _botInstance = null!;
     private IrcSendQueue _ircSendQueue = null!;
+
+    public IrcBuckets IrcBuckets { get; private set; } = null!;
 
     public IrcPoolManager(ILogger<IrcPoolManager> logger, IServiceProvider serviceProvider,
         IFactory<IIrcClient> ircClientFactory)
@@ -51,6 +51,7 @@ public class IrcPoolManager : IIrcPoolManager
     public Task Init(BotInstance botInstance)
     {
         _botInstance = botInstance;
+        IrcBuckets = new IrcBuckets(_botInstance.BotInstanceData.Limits);
         _ircSendQueue = new IrcSendQueue(this);
         for (int i = 0; i < _botInstance.BotInstanceData.Limits.SendConnections; i++)
         {
@@ -139,7 +140,11 @@ public class IrcPoolManager : IIrcPoolManager
         if (!privMsgToTwitch.UseSameSendConnectionAsPreviousMsg)
             _ircLastUsedSendClientIndex = (_ircLastUsedSendClientIndex + 1) % _ircSendClients.Count;
 
-        //await Task.Delay(10);
+        // TODO: Don't hardcode mod status
+        await IrcBuckets.WaitForMessageTicket(false);
+        
+        // TODO: global 1s cooldown if not vip / mod / broadcaster
+        // TODO: message identical check \u{E0000}
 
         // Send message
         await _ircSendClients[_ircLastUsedSendClientIndex].SendLine(privMsgToTwitch.ToString());

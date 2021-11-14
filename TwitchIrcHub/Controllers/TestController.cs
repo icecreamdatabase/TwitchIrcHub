@@ -1,9 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TwitchIrcHub.Authentication.Policies;
+using TwitchIrcHub.BackgroundServices;
+using TwitchIrcHub.IrcBot.Bot;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 
 namespace TwitchIrcHub.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize(Policy = Policies.IsRegisteredApp)]
 public class TestController : ControllerBase
 {
     private readonly ILogger<TestController> _logger;
@@ -16,6 +22,27 @@ public class TestController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> Get()
     {
+        const int botUserId = 122425204;
+
+        IBotInstance? bot = BotManager.GetBotInstance(botUserId);
+        if (bot == null)
+            return NoContent();
+
+        List<PrivMsgToTwitch> messages = new();
+
+        for (int i = 0; i < 50; i++)
+        {
+            messages.Add(new PrivMsgToTwitch(
+                    botUserId,
+                    "icdb",
+                    $"test{i:00}",
+                    useSameSendConnectionAsPreviousMsg: true
+                )
+            );
+        }
+
+        messages.ForEach(message => bot.SendPrivMsg(message));
+
         return Ok();
     }
 }
