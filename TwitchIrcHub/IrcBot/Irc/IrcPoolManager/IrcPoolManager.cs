@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
-using TwitchIrcHub.IrcBot.Irc.DataTypes.Parsed;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
 using TwitchIrcHub.Model;
 
@@ -24,6 +26,7 @@ public class IrcPoolManager : IIrcPoolManager
         _serviceProvider.GetService<IHubContext<IrcHub, IIrcHub>>() ??
         throw new InvalidOperationException();
 
+    private int _ircLastUsedSendClientIndex;
     private readonly List<IIrcClient> _ircSendClients = new();
     private readonly List<IIrcClient> _ircReceiveClients = new();
     private const int MaxChannelsPerIrcClient = 200;
@@ -35,6 +38,7 @@ public class IrcPoolManager : IIrcPoolManager
     public string BotOauth => _botInstance.BotInstanceData.AccessToken;
 
     private BotInstance _botInstance = null!;
+    private IrcSendQueue _ircSendQueue = null!;
 
     public IrcPoolManager(ILogger<IrcPoolManager> logger, IServiceProvider serviceProvider,
         IFactory<IIrcClient> ircClientFactory)
@@ -47,11 +51,11 @@ public class IrcPoolManager : IIrcPoolManager
     public Task Init(BotInstance botInstance)
     {
         _botInstance = botInstance;
-        int sendConnectionCount = Limits.NormalBot.SendConnections;
-        for (int i = 0; i < sendConnectionCount; i++)
+        _ircSendQueue = new IrcSendQueue(this);
+        for (int i = 0; i < _botInstance.BotInstanceData.Limits.SendConnections; i++)
         {
             IIrcClient ircClient = _ircClientFactory.Create();
-            ircClient.Init(this);
+            ircClient.Init(this, true);
             _ircSendClients.Add(ircClient);
         }
 
@@ -118,9 +122,27 @@ public class IrcPoolManager : IIrcPoolManager
             GetIrcClientOfChannel(channelName)?.Channels.Remove(channelName);
     }
 
-    //@client-nonce=xxx;reply-parent-msg-id=xxx PRIVMSG #channel :xxxxxx `
-    public void SendMessage(string channel, string message, string? clientNonce = null, string? replyParentMsgId = null)
+    public void SendMessage(PrivMsgToTwitch privMsg)
     {
+        _ircSendQueue.Enqueue(privMsg);
+        //foreach (PrivMsgToTwitch msg in morePrivMsgsInBatch)
+        //{
+        //    msg.UseSameSendConnectionAsPreviousMsg = true;
+        //    _ircSendQueue.Enqueue(msg);
+        //}
+    }
+
+    //@client-nonce=xxx;reply-parent-msg-id=xxx PRIVMSG #channel :xxxxxx `
+    public async Task SendMessageNoQueue(PrivMsgToTwitch privMsgToTwitch)
+    {
+        // Advance send client index if needed
+        if (!privMsgToTwitch.UseSameSendConnectionAsPreviousMsg)
+            _ircLastUsedSendClientIndex = (_ircLastUsedSendClientIndex + 1) % _ircSendClients.Count;
+
+        //await Task.Delay(10);
+
+        // Send message
+        await _ircSendClients[_ircLastUsedSendClientIndex].SendLine(privMsgToTwitch.ToString());
     }
 
     private IIrcClient? GetIrcClientOfChannel(string channel)
@@ -161,14 +183,14 @@ public class IrcPoolManager : IIrcPoolManager
             case IrcCommands.HostTarget:
             {
                 IrcHostTarget ircHostTarget = new IrcHostTarget(ircMessage);
-                List<int> appIds = GetAppIdsFromConnections(ircHostTarget.RoomName);
+                List<int> appIds = await GetAppIdsFromConnections(ircHostTarget.RoomName);
                 await IrcHubToClients.NewIrcHostTarget(IrcHubContext, ircHostTarget, appIds);
                 break;
             }
             case IrcCommands.Notice:
             {
                 IrcNotice ircNotice = new IrcNotice(ircMessage);
-                List<int> appIds = GetAppIdsFromConnections(ircNotice.RoomName);
+                List<int> appIds = await GetAppIdsFromConnections(ircNotice.RoomName);
                 await IrcHubToClients.NewIrcNotice(IrcHubContext, ircNotice, appIds);
                 break;
             }
@@ -201,7 +223,7 @@ public class IrcPoolManager : IIrcPoolManager
             case IrcCommands.UserState:
             {
                 IrcUserState ircUserState = new IrcUserState(ircMessage);
-                List<int> appIds = GetAppIdsFromConnections(ircUserState.RoomName);
+                List<int> appIds = await GetAppIdsFromConnections(ircUserState.RoomName);
                 await IrcHubToClients.NewIrcUserState(IrcHubContext, ircUserState, appIds);
                 break;
             }
@@ -222,11 +244,12 @@ public class IrcPoolManager : IIrcPoolManager
             .ToList();
     }
 
-    private List<int> GetAppIdsFromConnections(string roomName)
+    private async Task<List<int>> GetAppIdsFromConnections(string roomName)
     {
-        return new List<int>();
-        int roomId = 1;
-        return GetAppIdsFromConnections(roomId);
+        Dictionary<string, string> dict = await TwitchUsers.LoginsToIdsWithCache(new List<string> { roomName });
+        return dict.ContainsKey(roomName)
+            ? GetAppIdsFromConnections(int.Parse(dict[roomName]))
+            : new List<int>();
     }
 
     private List<int> GetAppIdsFromConnections(int roomId)

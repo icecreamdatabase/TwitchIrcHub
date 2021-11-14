@@ -1,4 +1,4 @@
-﻿using TwitchIrcHub.IrcBot.Irc.DataTypes.Parsed;
+﻿using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
 
 namespace TwitchIrcHub.Hubs.IrcHub;
 

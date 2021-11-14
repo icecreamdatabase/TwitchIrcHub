@@ -44,6 +44,7 @@ public class IrcClient : IIrcClient
     private readonly List<string> _actualChannels = new();
     private DateTime _lastChannelChangeFlushed = DateTime.UnixEpoch;
     private bool _currentlyUpdatingChannels;
+    private bool _isSendOnlyConnection;
 
     public IrcClient(ILogger<IrcClient> logger)
     {
@@ -52,8 +53,9 @@ public class IrcClient : IIrcClient
         Channels.CollectionChanged += UpdateJoinedChannels;
     }
 
-    public void Init(IIrcPoolManager ircPoolManager)
+    public void Init(IIrcPoolManager ircPoolManager, bool isSendOnlyConnection)
     {
+        _isSendOnlyConnection = isSendOnlyConnection;
         _ircPoolManager = ircPoolManager;
         _thread = new Thread(ThreadRun);
         _thread.Start();
@@ -141,6 +143,7 @@ public class IrcClient : IIrcClient
                 }
                 catch (OperationCanceledException)
                 {
+                    _logger.LogWarning("Read was cancelled!");
                     continue;
                 }
 
@@ -152,7 +155,7 @@ public class IrcClient : IIrcClient
                 await HandleIrcCommand(ircMessage, stoppingToken);
             }
 
-            await _streamWriter.DisposeAsync();
+            _streamWriter?.Close();
         }
         catch (SocketException e)
         {
@@ -169,8 +172,7 @@ public class IrcClient : IIrcClient
             _logger.LogError("{E}", e.ToString());
         }
 
-        if (_streamWriter != null)
-            await _streamWriter.DisposeAsync();
+        _streamWriter?.Close();
         _tcpClient?.Close();
 
         int reconnectionDelay = 150;
@@ -192,7 +194,9 @@ public class IrcClient : IIrcClient
             /* --------------------------------------------------------------------------- */
             /* ------------------------------ Setup commands ----------------------------- */
             /* --------------------------------------------------------------------------- */
-            case IrcCommands.RplWelcome:
+            case IrcCommands.RplWelcome when _isSendOnlyConnection:
+                return;
+            case IrcCommands.RplWelcome when !_isSendOnlyConnection:
 #pragma warning disable 4014
                 Task.Delay(4000, stoppingToken).ContinueWith(_ =>
                 {
@@ -200,7 +204,7 @@ public class IrcClient : IIrcClient
                     return UpdateJoinedChannels();
                 }, stoppingToken);
 #pragma warning restore 4014
-                break;
+                return;
             /* --------------------------------------------------------------------------- */
             /* ----------------------------- Ignored commands ---------------------------- */
             /* --------------------------------------------------------------------------- */
@@ -292,6 +296,22 @@ public class IrcClient : IIrcClient
         _cancellationTokenSource.Cancel();
     }
 
+    public async Task SendLine(string line)
+    {
+        if (_streamWriter == null)
+            _logger.LogWarning("StreamWriter is null for line: \n{Line}", line);
+        else
+            try
+            {
+                await _streamWriter.WriteLineAsync(line);
+                await _streamWriter.FlushAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed sending line: \n{Line}\n{E}", line, e.ToString());
+            }
+    }
+
     private async void UpdateJoinedChannels(object? sender, NotifyCollectionChangedEventArgs args)
     {
         await UpdateJoinedChannels();
@@ -299,6 +319,13 @@ public class IrcClient : IIrcClient
 
     private async Task UpdateJoinedChannels()
     {
+        // If we are only here for sending ... stop trying to join or part channels!
+        if (_isSendOnlyConnection)
+        {
+            _logger.LogWarning("Send only connection is trying to update channels!");
+            return;
+        }
+
         if (_tcpClient is { Connected: false } || !_fullyConnected || _currentlyUpdatingChannels) return;
 
         _currentlyUpdatingChannels = true;

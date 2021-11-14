@@ -1,6 +1,7 @@
 ﻿using TwitchIrcHub.Model;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Auth;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Auth.DataTypes;
+using TwitchIrcHub.IrcBot.Helper;
 
 namespace TwitchIrcHub.IrcBot.Bot;
 
@@ -17,10 +18,14 @@ public class BotInstanceData : IBotInstanceData
 
     public int UserId { get; private set; }
     public string UserName { get; private set; } = null!;
+    public bool Known { get; private set; } = false;
+    public bool Verified { get; private set; } = false;
     public string AccessToken { get; private set; } = null!;
     public string RefreshToken { get; private set; } = null!;
     public int? SupinicApiUser { get; private set; }
     public string? SupinicApiKey { get; private set; }
+
+    public Limits Limits { get; private set; } = Limits.NormalBot;
 
     public BotInstanceData(ILogger<BotInstanceData> logger, IServiceProvider serviceProvider)
     {
@@ -36,10 +41,19 @@ public class BotInstanceData : IBotInstanceData
             throw new Exception($"No DB data for {botUserId}");
 
         UserName = bot.UserName;
+        Known = bot.Known;
+        Verified = bot.Verified;
         AccessToken = bot.AccessToken;
         RefreshToken = bot.RefreshToken;
         SupinicApiUser = bot.SupinicApiUser;
         SupinicApiKey = bot.SupinicApiKey;
+
+        if (Verified)
+            Limits = Limits.VerifiedBot;
+        else if (Known)
+            Limits = Limits.KnownBot;
+        //else // Not needed as we set the default to NormalBot
+        //    Limits = Limits.NormalBot;
 
         await ValidateAccessToken();
         _lastValidation = DateTime.Now;

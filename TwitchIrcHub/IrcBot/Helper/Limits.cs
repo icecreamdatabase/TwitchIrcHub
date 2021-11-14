@@ -8,8 +8,10 @@ public class Limits
         MaxChannelsPerIrcClient = 50,
         IrcAuthBucketLimit = 20,
         IrcJoinBucketLimit = 20,
-        IrcMessageBucketLimitUser = 20,
-        IrcMessageBucketLimitMod = 100,
+        IrcChannelMessageBucketLimitUser = 20,
+        IrcChannelMessageBucketLimitMod = 100,
+        IrcGlobalMessageBucketLimitUser = 20,
+        IrcGlobalMessageBucketLimitMod = 100,
     };
 
 
@@ -19,8 +21,10 @@ public class Limits
         MaxChannelsPerIrcClient = 50,
         IrcAuthBucketLimit = 20,
         IrcJoinBucketLimit = 20,
-        IrcMessageBucketLimitUser = 50,
-        IrcMessageBucketLimitMod = 100,
+        IrcChannelMessageBucketLimitUser = 20,
+        IrcChannelMessageBucketLimitMod = 100,
+        IrcGlobalMessageBucketLimitUser = 50,
+        IrcGlobalMessageBucketLimitMod = 100,
     };
 
     public static readonly Limits VerifiedBot = new()
@@ -29,8 +33,10 @@ public class Limits
         MaxChannelsPerIrcClient = 500,
         IrcAuthBucketLimit = 200,
         IrcJoinBucketLimit = 2000,
-        IrcMessageBucketLimitUser = 7500,
-        IrcMessageBucketLimitMod = 7500,
+        IrcChannelMessageBucketLimitUser = 20,
+        IrcChannelMessageBucketLimitMod = 100,
+        IrcGlobalMessageBucketLimitUser = 7500,
+        IrcGlobalMessageBucketLimitMod = 7500,
     };
 
     public int SendConnections { get; private init; }
@@ -38,12 +44,14 @@ public class Limits
         
     /* IRC connect bucket */
     public int IrcAuthBucketLimit { get; private init; }
-    public int IrcAuthBucketPerXSeconds { get; private init; } = 10;
+    public const int IrcAuthBucketPerXSeconds = 10;
     public int IrcJoinBucketLimit { get; private init; }
-    public int IrcJoinBucketPerXSeconds { get; private init; } = 10;
+    public int IrcJoinBucketPerXSeconds { get; } = 10;
         
     /* IRC message bucket */
-    public int IrcMessageBucketLimitUser { get; private init; }
-    public int IrcMessageBucketLimitMod { get; private init; }
-    public int IrcMessageBucketPerXSeconds { get; private init; } = 30;
+    public int IrcChannelMessageBucketLimitUser { get; private init; }
+    public int IrcChannelMessageBucketLimitMod { get; private init; }
+    public int IrcGlobalMessageBucketLimitUser { get; private init; }
+    public int IrcGlobalMessageBucketLimitMod { get; private init; }
+    public const int IrcMessageBucketPerXSeconds = 30;
 }

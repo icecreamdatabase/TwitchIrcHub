@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace TwitchIrcHub.IrcBot.Irc.DataTypes.Parsed;
+namespace TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
 
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]

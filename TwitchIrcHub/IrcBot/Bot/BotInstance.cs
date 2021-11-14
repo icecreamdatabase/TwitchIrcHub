@@ -1,4 +1,5 @@
 ﻿using TwitchIrcHub.IrcBot.Helper;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 using TwitchIrcHub.IrcBot.Irc.IrcPoolManager;
 
 namespace TwitchIrcHub.IrcBot.Bot;
@@ -31,6 +32,11 @@ public class BotInstance : IBotInstance
     {
         await BotInstanceData.IntervalPing();
         await _ircPoolManager.IntervalPing();
+    }
+
+    public void SendPrivMsg(PrivMsgToTwitch privMsg)
+    {
+        _ircPoolManager.SendMessage(privMsg);
     }
 
     public void Dispose()

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace TwitchIrcHub.IrcBot.Irc.DataTypes.Parsed;
+namespace TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
 
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
@@ -41,8 +41,8 @@ public class IrcClearChat
         // Exceptions for nullable / missing tags that are not allowed to be missing.
         if (string.IsNullOrEmpty(roomId))
             throw new Exception($"CLEARCHAT without valid roomId:\n{ircMessage.RawSource}");
-        if (ircMessage.IrcParameters.Count < 2)
-            throw new Exception($"CLEARCHAT without valid target-msg-id:\n{ircMessage.RawSource}");
+        if (ircMessage.IrcParameters.Count < 1)
+            throw new Exception($"CLEARCHAT without valid roomName:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(tmiSentTs))
             throw new Exception($"CLEARCHAT without valid timestamp:\n{ircMessage.RawSource}");
 
@@ -60,7 +60,7 @@ public class IrcClearChat
         /* --------------------------------------------------------------------------- */
         /* --------------------- Non-tag but still required data --------------------- */
         /* --------------------------------------------------------------------------- */
-        if (!string.IsNullOrEmpty(ircMessage.IrcParameters[1]))
+        if (ircMessage.IrcParameters.Count > 1 && !string.IsNullOrEmpty(ircMessage.IrcParameters[1]))
             TargetUserName = ircMessage.IrcParameters[1];
         RoomName = ircMessage.IrcParameters[0][1..];
     }
