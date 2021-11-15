@@ -1,10 +1,12 @@
-﻿using System.Net;
+﻿using System.Collections.Concurrent;
+using System.Net;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
 using TwitchIrcHub.Hubs.IrcHub;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
+using TwitchIrcHub.IrcBot.Irc.DataCache;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
 using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
 using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
@@ -32,7 +34,8 @@ public class IrcPoolManager : IIrcPoolManager
     private readonly List<IIrcClient> _ircReceiveClients = new();
     private const int MaxChannelsPerIrcClient = 200;
 
-    private readonly Dictionary<string, string> _previousMessageInChannel = new();
+    private readonly ConcurrentDictionary<string, string> _previousMessageInChannel = new();
+    private readonly ConcurrentDictionary<string, DateTime> _previousMessageDateTimeInChannel = new();
 
     public string BotUsername => _botInstance.BotInstanceData.UserName;
     public string BotOauth => _botInstance.BotInstanceData.AccessToken;
@@ -41,6 +44,8 @@ public class IrcPoolManager : IIrcPoolManager
     private IrcSendQueue _ircSendQueue = null!;
 
     public IrcBuckets IrcBuckets { get; private set; } = null!;
+    public UserStateCache UserStateCache { get; } = new();
+    public GlobalUserStateCache GlobalUserStateCache { get; } = new();
 
     public IrcPoolManager(ILogger<IrcPoolManager> logger, IServiceProvider serviceProvider,
         IFactory<IIrcClient> ircClientFactory)
@@ -138,18 +143,13 @@ public class IrcPoolManager : IIrcPoolManager
     //@client-nonce=xxx;reply-parent-msg-id=xxx PRIVMSG #channel :xxxxxx `
     public async Task SendMessageNoQueue(PrivMsgToTwitch privMsgToTwitch)
     {
-        // TODO: Don't hardcode mod status
-        bool useModRateLimit = false;
+        bool useModRateLimit = UserStateCache.IsModInChannel(privMsgToTwitch.RoomName);
 
         /* ---------- Ratelimit ---------- */
         await IrcBuckets.WaitForMessageTicket(useModRateLimit);
-
-        /* ---------- Global cooldown as non-useModRateLimit ---------- */
-        if (!useModRateLimit)
-        {
-            // TODO: global 1s cooldown if not vip / mod / broadcaster
-        }
-
+        await HandleGlobalCooldown(privMsgToTwitch, useModRateLimit);
+        
+        /* ---------- Message adjustment ---------- */ 
         HandleMessageCleanup(privMsgToTwitch);
         HandleDuplicateMessage(privMsgToTwitch);
 
@@ -161,6 +161,27 @@ public class IrcPoolManager : IIrcPoolManager
 
         /* ---------- Send message ---------- */
         await _ircSendClients[_ircLastUsedSendClientIndex].SendLine(privMsgToTwitch.ToString());
+    }
+
+    private async Task HandleGlobalCooldown(PrivMsgToTwitch privMsgToTwitch, bool useModRateLimit)
+    {
+        if (useModRateLimit) return;
+
+        if (_previousMessageDateTimeInChannel.ContainsKey(privMsgToTwitch.RoomName))
+        {
+            double msSinceLastMessageInSameChannel =
+                (DateTime.UtcNow - _previousMessageDateTimeInChannel[privMsgToTwitch.RoomName]).TotalMilliseconds;
+
+            double additionalWaitRequired = 1100 - msSinceLastMessageInSameChannel;
+
+            if (additionalWaitRequired > 0)
+            {
+                _logger.LogDebug("Sending messages too fast. Waiting for {Ms} ms", (int)additionalWaitRequired);
+                await Task.Delay((int)additionalWaitRequired, CancellationToken.None);
+            }
+        }
+
+        _previousMessageDateTimeInChannel[privMsgToTwitch.RoomName] = DateTime.UtcNow;
     }
 
     private static void HandleMessageCleanup(PrivMsgToTwitch privMsgToTwitch)
@@ -223,6 +244,7 @@ public class IrcPoolManager : IIrcPoolManager
             case IrcCommands.GlobalUserState:
             {
                 IrcGlobalUserState ircGlobalUserState = new IrcGlobalUserState(ircMessage);
+                GlobalUserStateCache.LastGlobalUserState = ircGlobalUserState;
                 List<int> appIds = GetAppIdsFromConnections();
                 await IrcHubToClients.NewIrcGlobalUserState(IrcHubContext, ircGlobalUserState, appIds);
                 break;
@@ -270,6 +292,7 @@ public class IrcPoolManager : IIrcPoolManager
             case IrcCommands.UserState:
             {
                 IrcUserState ircUserState = new IrcUserState(ircMessage);
+                UserStateCache.AddUserState(ircUserState);
                 List<int> appIds = await GetAppIdsFromConnections(ircUserState.RoomName);
                 await IrcHubToClients.NewIrcUserState(IrcHubContext, ircUserState, appIds);
                 break;

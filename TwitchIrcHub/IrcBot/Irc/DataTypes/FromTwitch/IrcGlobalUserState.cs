@@ -17,6 +17,8 @@ public class IrcGlobalUserState
     public string DisplayName { get; }
     public string[] EmoteSets { get; }
     public int UserId { get; }
+    //TODO: UserType enum
+    public string? UserType { get; }
 
 
     public IrcGlobalUserState(IrcMessage ircMessage)
@@ -36,6 +38,7 @@ public class IrcGlobalUserState
         ircMessage.IrcMessageTags.TryGetValue("display-name", out string? displayName);
         ircMessage.IrcMessageTags.TryGetValue("emote-sets", out string? emoteSets);
         ircMessage.IrcMessageTags.TryGetValue("user-id", out string? userId);
+        ircMessage.IrcMessageTags.TryGetValue("user-type", out string? userType);
 
         // Exceptions for nullable / missing tags that are not allowed to be missing.
         if (string.IsNullOrEmpty(displayName))
@@ -53,5 +56,6 @@ public class IrcGlobalUserState
         DisplayName = displayName;
         EmoteSets = emoteSets?.Split(',') ?? Array.Empty<string>();
         UserId = int.Parse(userId);
+        UserType = userType;
     }
 }

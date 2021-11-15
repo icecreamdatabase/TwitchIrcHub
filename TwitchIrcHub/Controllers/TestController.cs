@@ -30,7 +30,7 @@ public class TestController : ControllerBase
 
         List<PrivMsgToTwitch> messages = new();
 
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 1; i++)
         {
             messages.Add(new PrivMsgToTwitch(
                     botUserId,

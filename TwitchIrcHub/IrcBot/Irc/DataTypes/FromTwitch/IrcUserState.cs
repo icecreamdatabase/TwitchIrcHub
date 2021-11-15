@@ -16,6 +16,10 @@ public class IrcUserState
     public string Color { get; }
     public string DisplayName { get; }
     public string[] EmoteSets { get; }
+    public bool IsMod { get; }
+    public bool IsSubscriber { get; }
+    //TODO: UserType enum
+    public string? UserType { get; }
 
     /* --------------------------------------------------------------------------- */
     /* --------------------- Non-tag but still required data --------------------- */
@@ -39,6 +43,9 @@ public class IrcUserState
         ircMessage.IrcMessageTags.TryGetValue("color", out string? color);
         ircMessage.IrcMessageTags.TryGetValue("display-name", out string? displayName);
         ircMessage.IrcMessageTags.TryGetValue("emote-sets", out string? emoteSets);
+        ircMessage.IrcMessageTags.TryGetValue("mod", out string? mod);
+        ircMessage.IrcMessageTags.TryGetValue("subscriber", out string? subscriber);
+        ircMessage.IrcMessageTags.TryGetValue("user-type", out string? userType);
 
         // Exceptions for nullable / missing tags that are not allowed to be missing.
         if (string.IsNullOrEmpty(displayName))
@@ -55,6 +62,9 @@ public class IrcUserState
         Color = color ?? "";
         DisplayName = displayName;
         EmoteSets = emoteSets?.Split(',') ?? Array.Empty<string>();
+        IsMod = mod != null && mod != "0";
+        IsSubscriber = subscriber != null && subscriber != "0";
+        UserType = userType;
 
         /* --------------------------------------------------------------------------- */
         /* --------------------- Non-tag but still required data --------------------- */

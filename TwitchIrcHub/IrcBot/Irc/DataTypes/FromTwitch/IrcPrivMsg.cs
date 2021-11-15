@@ -22,6 +22,11 @@ public class IrcPrivMsg
     public int RoomId { get; }
     public DateTime TmiSentTs { get; }
     public int UserId { get; }
+    public bool IsMod { get; }
+    public bool IsSubscriber { get; }
+    public bool IsTurbo { get; }
+    //TODO: UserType enum
+    public string? UserType { get; }
 
     /* --------------------------------------------------------------------------- */
     /* --------------------- Non-tag but still required data --------------------- */
@@ -65,13 +70,13 @@ public class IrcPrivMsg
         ircMessage.IrcMessageTags.TryGetValue("first-msg", out string? firstMsg);
         ircMessage.IrcMessageTags.TryGetValue("flags", out string? flags);
         ircMessage.IrcMessageTags.TryGetValue("id", out string? id);
-        //ircMessage.IrcMessageTags.TryGetValue("mod", out string? mod);
+        ircMessage.IrcMessageTags.TryGetValue("mod", out string? mod);
         ircMessage.IrcMessageTags.TryGetValue("room-id", out string? roomId);
-        //ircMessage.IrcMessageTags.TryGetValue("subscriber", out string? subscriber);
+        ircMessage.IrcMessageTags.TryGetValue("subscriber", out string? subscriber);
         ircMessage.IrcMessageTags.TryGetValue("tmi-sent-ts", out string? tmiSentTs);
-        //ircMessage.IrcMessageTags.TryGetValue("turbo", out string? turbo);
+        ircMessage.IrcMessageTags.TryGetValue("turbo", out string? turbo);
         ircMessage.IrcMessageTags.TryGetValue("user-id", out string? userId);
-        //ircMessage.IrcMessageTags.TryGetValue("user-type", out string? userType);
+        ircMessage.IrcMessageTags.TryGetValue("user-type", out string? userType);
 
         /* --------------------------------------------------------------------------- */
         /* ----------------------------- Conditional tags ---------------------------- */
@@ -119,6 +124,10 @@ public class IrcPrivMsg
         RoomId = int.Parse(roomId);
         TmiSentTs = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(tmiSentTs)).UtcDateTime;
         UserId = int.Parse(userId);
+        IsMod = mod != null && mod != "0";
+        IsSubscriber = subscriber != null && subscriber != "0";
+        IsTurbo = turbo != null && turbo != "0";
+        UserType = userType;
 
         /* --------------------------------------------------------------------------- */
         /* --------------------- Non-tag but still required data --------------------- */
