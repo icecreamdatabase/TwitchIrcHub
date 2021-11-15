@@ -14,6 +14,7 @@ public class IrcHub : Hub<IIrcHub>
             ConnectedClients.Add(Context.ConnectionId, Context.UserIdentifier);
             Console.WriteLine($"--> Connection Opened: {Context.ConnectionId} (AppId: {Context.UserIdentifier})");
             await Clients.Client(Context.ConnectionId).ConnId(Context.ConnectionId);
+            // TODO: Send all known UserState and GlobalUserState to client.
         }
         else
         {
