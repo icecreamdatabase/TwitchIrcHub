@@ -42,6 +42,7 @@ public class BotInstance : IBotInstance
     {
         await BotInstanceData.IntervalPing();
         await _ircPoolManager.IntervalPing();
+        await _pubSubPoolManager.IntervalPing();
     }
 
     public void SendPrivMsg(PrivMsgToTwitch privMsg)

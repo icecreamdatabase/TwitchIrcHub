@@ -194,13 +194,11 @@ public class IrcClient : IIrcClient
             case IrcCommands.RplWelcome when _isSendOnlyConnection:
                 return;
             case IrcCommands.RplWelcome when !_isSendOnlyConnection:
-#pragma warning disable 4014
-                Task.Delay(4000, stoppingToken).ContinueWith(_ =>
+                _ = Task.Delay(4000, stoppingToken).ContinueWith(_ =>
                 {
                     _fullyConnected = true;
                     return UpdateJoinedChannels();
                 }, stoppingToken);
-#pragma warning restore 4014
                 return;
             /* --------------------------------------------------------------------------- */
             /* ----------------------------- Ignored commands ---------------------------- */

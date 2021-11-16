@@ -12,7 +12,6 @@ public class IrcClearMsg
     /* ------------------------------ Required tags ------------------------------ */
     /* --------------------------------------------------------------------------- */
     public string Login { get; }
-    public int RoomId { get; }
     public string TargetMsgId { get; }
     public DateTime TmiSentTs { get; }
 
@@ -20,6 +19,7 @@ public class IrcClearMsg
     /* --------------------- Non-tag but still required data --------------------- */
     /* --------------------------------------------------------------------------- */
     public string Message { get; }
+    public int? RoomId { get; }
     public string RoomName { get; }
 
     public IrcClearMsg(IrcMessage ircMessage)
@@ -41,8 +41,6 @@ public class IrcClearMsg
         // Exceptions for nullable / missing tags that are not allowed to be missing.
         if (string.IsNullOrEmpty(login))
             throw new Exception($"CLEARMSG without valid login:\n{ircMessage.RawSource}");
-        if (string.IsNullOrEmpty(roomId))
-            throw new Exception($"CLEARMSG without valid roomId:\n{ircMessage.RawSource}");
         if (ircMessage.IrcParameters.Count < 2)
             throw new Exception($"CLEARMSG without valid roomName or message:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(targetMsgId))
@@ -55,7 +53,8 @@ public class IrcClearMsg
         /* ------------------------------ Required tags ------------------------------ */
         /* --------------------------------------------------------------------------- */
         Login = login;
-        RoomId = int.Parse(roomId);
+        if (!string.IsNullOrEmpty(roomId))
+            RoomId = int.Parse(roomId);
         TargetMsgId = targetMsgId;
         TmiSentTs = DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(tmiSentTs)).UtcDateTime;
 

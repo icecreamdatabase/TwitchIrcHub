@@ -15,6 +15,8 @@ using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
 using TwitchIrcHub.IrcBot.Irc.IrcPoolManager;
+using TwitchIrcHub.IrcBot.PubSub.PubSubClient;
+using TwitchIrcHub.IrcBot.PubSub.PubSubPoolManager;
 using TwitchIrcHub.Model;
 
 namespace TwitchIrcHub;
@@ -127,13 +129,19 @@ public class Startup
         //);
         services.AddSignalR();
 
+        /* ---------- Bot ---------- */
         services.AddHostedService<PrepareBotAndPrefetchData>();
         services.AddHostedService<BotManager>();
-
         services.AddFactory<IBotInstance, BotInstance>();
+
+        /* ---------- Irc ---------- */
         services.AddFactory<IIrcPoolManager, IrcPoolManager>();
         services.AddFactory<IIrcClient, IrcClient>();
         services.AddFactory<IBotInstanceData, BotInstanceData>();
+        
+        /* ---------- PubSub ---------- */
+        services.AddFactory<IPubSubPoolManager, PubSubPoolManager>();
+        services.AddFactory<IPubSubClient, PubSubClient>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

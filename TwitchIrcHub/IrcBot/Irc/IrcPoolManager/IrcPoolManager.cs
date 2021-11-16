@@ -91,16 +91,15 @@ public class IrcPoolManager : IIrcPoolManager
 
     private void SetChannel(params string[] channelNames)
     {
-        Part(_ircReceiveClients.SelectMany(client => client.Channels).Except(channelNames).ToArray());
-        Join(channelNames.Except(_ircReceiveClients.SelectMany(client => client.Channels)).ToArray());
+        Part(_ircReceiveClients.SelectMany(client => client.Channels).Except(channelNames).ToList());
+        Join(channelNames.Except(_ircReceiveClients.SelectMany(client => client.Channels)).ToList());
     }
 
-    private void Join(params string[] channelNames)
+    private void Join(List<string> channels)
     {
-        if (channelNames.Length == 0) return;
-        List<string> channels = channelNames.ToList();
+        if (channels.Count == 0) return;
         foreach (IIrcClient ircClient in _ircReceiveClients
-                     .Where(ircClient => ircClient.Channels.Count >= MaxChannelsPerIrcClient)
+                     .Where(ircClient => ircClient.Channels.Count < MaxChannelsPerIrcClient)
                 )
         {
             int freeSlots = MaxChannelsPerIrcClient - ircClient.Channels.Count;
@@ -122,9 +121,9 @@ public class IrcPoolManager : IIrcPoolManager
         }
     }
 
-    private void Part(params string[] channelNames)
+    private void Part(IReadOnlyCollection<string> channelNames)
     {
-        if (channelNames.Length == 0) return;
+        if (channelNames.Count == 0) return;
 
         foreach (string channelName in channelNames)
             GetIrcClientOfChannel(channelName)?.Channels.Remove(channelName);
@@ -148,8 +147,8 @@ public class IrcPoolManager : IIrcPoolManager
         /* ---------- Ratelimit ---------- */
         await IrcBuckets.WaitForMessageTicket(useModRateLimit);
         await HandleGlobalCooldown(privMsgToTwitch, useModRateLimit);
-        
-        /* ---------- Message adjustment ---------- */ 
+
+        /* ---------- Message adjustment ---------- */
         HandleMessageCleanup(privMsgToTwitch);
         HandleDuplicateMessage(privMsgToTwitch);
 
@@ -237,7 +236,9 @@ public class IrcPoolManager : IIrcPoolManager
             case IrcCommands.ClearMsg:
             {
                 IrcClearMsg ircClearMsg = new IrcClearMsg(ircMessage);
-                List<int> appIds = GetAppIdsFromConnections(ircClearMsg.RoomId);
+                List<int> appIds = ircClearMsg.RoomId != null
+                    ? GetAppIdsFromConnections(ircClearMsg.RoomId.Value)
+                    : await GetAppIdsFromConnections(ircClearMsg.RoomName);
                 await IrcHubToClients.NewIrcClearMsg(IrcHubContext, ircClearMsg, appIds);
                 break;
             }
@@ -265,7 +266,7 @@ public class IrcPoolManager : IIrcPoolManager
             }
             case IrcCommands.PrivMsg:
             {
-                _logger.LogInformation("{Raw}", ircMessage.RawSource);
+                //_logger.LogInformation("{Raw}", ircMessage.RawSource);
                 IrcPrivMsg ircPrivMsg = new IrcPrivMsg(ircMessage);
                 //_logger.LogInformation("{Command}: {Channel}: {Msg}", ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
 
