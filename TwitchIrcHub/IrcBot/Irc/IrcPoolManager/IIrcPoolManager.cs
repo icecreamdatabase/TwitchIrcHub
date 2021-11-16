@@ -1,4 +1,5 @@
 ﻿using TwitchIrcHub.IrcBot.Bot;
+using TwitchIrcHub.IrcBot.Irc.DataCache;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
 using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
@@ -9,6 +10,8 @@ public interface IIrcPoolManager
 {
     public Task Init(BotInstance botInstance);
     public IrcBuckets IrcBuckets { get; }
+    public UserStateCache UserStateCache { get; }
+    public GlobalUserStateCache GlobalUserStateCache { get; }
     public string BotUsername { get; }
     public string BotOauth { get; }
     public Task ForceCheckAuth();

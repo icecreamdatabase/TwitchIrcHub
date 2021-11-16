@@ -1,4 +1,5 @@
-﻿using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
+﻿using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
 
 namespace TwitchIrcHub.IrcBot.Irc.DataCache;
 
@@ -22,5 +23,14 @@ public class UserStateCache
                    ircUserState.Badges.ContainsKey("vip") ||
                    ircUserState.Badges.ContainsKey("moderator")
                );
+    }
+
+    public async Task<List<IrcUserState>> GetBasedOnRoomIds(List<int> roomIds)
+    {
+        return (await TwitchUsers.IdsToLoginsWithCache(roomIds))
+            .Values
+            .Where(roomName => _lastUserStatePerRoom.ContainsKey(roomName))
+            .Select(roomName => _lastUserStatePerRoom[roomName])
+            .ToList();
     }
 }

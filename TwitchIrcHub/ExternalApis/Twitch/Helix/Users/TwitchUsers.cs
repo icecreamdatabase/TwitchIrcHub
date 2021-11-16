@@ -54,6 +54,11 @@ public static class TwitchUsers
         return users?.Data ?? new List<TwitchUsersResult>();
     }
 
+    public static Task<Dictionary<string, string>> IdsToLoginsWithCache(List<int> ids)
+    {
+        return IdsToLoginsWithCache(ids.Select(id => id.ToString()).ToList());
+    }
+
     public static async Task<Dictionary<string, string>> IdsToLoginsWithCache(List<string> ids)
     {
         await CacheAccessSemaphoreSlim.WaitAsync();
