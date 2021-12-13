@@ -143,24 +143,27 @@ public class PubSubClient : IPubSubClient
         rawMessage = rawMessage.Trim();
         if (rawMessage.Length <= 1)
             return;
-        PubSubIncomingMessage? parsed = JsonSerializer.Deserialize<PubSubIncomingMessage>(rawMessage);
+        PubSubIncomingMessage? parsed = JsonSerializer.Deserialize<PubSubIncomingMessage>(rawMessage, GlobalStatics.JsonCaseInsensitive);
         if (parsed == null)
             return;
 
         _logger.LogInformation("PubSub: {Message}", rawMessage.Trim());
         switch (parsed.Type)
         {
-            case "PONG":
+            case PubSubIncomingMessageType.Pong:
                 _awaitingPing = false;
                 return;
-            case "RECONNECT":
+            case PubSubIncomingMessageType.Reconnect:
                 await Disconnect();
                 return;
-            case "RESPONSE":
+            case PubSubIncomingMessageType.Response:
                 return;
-            case "MESSAGE":
+            case PubSubIncomingMessageType.Message:
                 _ = _pubSubPoolManager.NewIncomingPubSubMessage(parsed).ConfigureAwait(false);
                 return;
+            case null:
+                _logger.LogWarning("Unknown PubSub message type: {Raw}", rawMessage);
+                break;
             default:
                 return;
         }

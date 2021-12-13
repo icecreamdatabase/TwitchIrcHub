@@ -1,6 +1,9 @@
-﻿using TwitchIrcHub.IrcBot.Bot;
+﻿using System.Text.Json;
+using TwitchIrcHub.Helper;
+using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.PubSub.DataTypes;
+using TwitchIrcHub.IrcBot.PubSub.DataTypes.parsed.Whispers;
 using TwitchIrcHub.IrcBot.PubSub.PubSubClient;
 
 namespace TwitchIrcHub.IrcBot.PubSub.PubSubPoolManager;
@@ -87,8 +90,50 @@ public class PubSubPoolManager : IPubSubPoolManager
 
     public async Task NewIncomingPubSubMessage(PubSubIncomingMessage pubSubIncomingMessage)
     {
-        switch (pubSubIncomingMessage.Type)
+        if (pubSubIncomingMessage.Data == null)
+            return;
+
+        string[] splitTopic = pubSubIncomingMessage.Data.Topic.Split('.');
+        string dataMessage = pubSubIncomingMessage.Data.Message;
+
+        switch (splitTopic[0])
         {
+            case PubSubTopics.Whispers:
+            {
+                string botUserId = splitTopic[1];
+                HandleIncomingWhispers(dataMessage, botUserId);
+                break;
+            }
+        }
+    }
+
+    private static void HandleIncomingWhispers(string dataMessage, string botUserId)
+    {
+        PubSubWhisperBase<object>? parsed =
+            JsonSerializer.Deserialize<PubSubWhisperBase<object>>(dataMessage, GlobalStatics.JsonCaseInsensitive);
+
+        if (parsed == null)
+            return;
+
+        switch (parsed.Type)
+        {
+            case PubSubIncomingWhisperType.Thread:
+                PubSubWhisperBase<PubSubWhisperThread>? parsedThread =
+                    JsonSerializer.Deserialize<PubSubWhisperBase<PubSubWhisperThread>>(dataMessage,
+                        GlobalStatics.JsonCaseInsensitive);
+                break;
+            case PubSubIncomingWhisperType.WhisperSent:
+                PubSubWhisperBase<PubSubWhisperMessage>? parsedSent =
+                    JsonSerializer.Deserialize<PubSubWhisperBase<PubSubWhisperMessage>>(dataMessage,
+                        GlobalStatics.JsonCaseInsensitive);
+                break;
+            case PubSubIncomingWhisperType.WhisperReceived:
+                PubSubWhisperBase<PubSubWhisperMessage>? parsedReceived =
+                    JsonSerializer.Deserialize<PubSubWhisperBase<PubSubWhisperMessage>>(dataMessage,
+                        GlobalStatics.JsonCaseInsensitive);
+                break;
+            default:
+                break;
         }
     }
 
@@ -96,4 +141,17 @@ public class PubSubPoolManager : IPubSubPoolManager
     {
         _pubSubClients.Remove(pubSubClient);
     }
+}
+
+internal static class PubSubTopics
+{
+    public const string ChannelBitsEventsV1 = "channel-bits-events-v1";
+    public const string ChannelBitsEventsV2 = "channel-bits-events-v2";
+    public const string ChannelBitsBadgeUnlocks = "channel-bits-badge-unlocks";
+    public const string ChannelPointsChannelV1 = "channel-points-channel-v1";
+    public const string ChannelSubscribeEventsV1 = "channel-subscribe-events-v1";
+    public const string ChatModeratorActions = "chat_moderator_actions";
+    public const string AutoModQueue = "automod-queue";
+    public const string UserModerationNotifications = "user-moderation-notifications";
+    public const string Whispers = "whispers";
 }

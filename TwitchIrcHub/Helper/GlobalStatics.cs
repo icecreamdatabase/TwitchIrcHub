@@ -7,11 +7,17 @@ public static class GlobalStatics
 {
     public static readonly JsonSerializerOptions JsonIndentAndIgnoreNullValues = new()
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented = true
     };
 
     public static readonly JsonSerializerOptions JsonIgnoreNullValues = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+    
+    public static readonly JsonSerializerOptions JsonCaseInsensitive = new()
+    {
+        PropertyNameCaseInsensitive = true
     };
 }

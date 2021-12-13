@@ -4,18 +4,17 @@ namespace TwitchIrcHub.IrcBot.PubSub.DataTypes;
 
 public class PubSubIncomingMessage
 {
-
     [JsonPropertyName("type")]
-    [JsonInclude]
-    public string Type { get; init; } = null!;
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public PubSubIncomingMessageType? Type { get; init; }
+
     [JsonPropertyName("nonce")]
-    [JsonInclude]
     public string? Nonce { get; init; }
+
     [JsonPropertyName("error")]
-    [JsonInclude]
     public string? Error { get; init; }
+
     [JsonPropertyName("data")]
-    [JsonInclude]
     public PubSubMessageData? Data { get; init; }
 }
 
@@ -23,7 +22,16 @@ public class PubSubMessageData
 {
     [JsonPropertyName("topic")]
     public string Topic { get; init; } = null!;
+
     [JsonPropertyName("message")]
 
     public string Message { get; init; } = null!;
+}
+
+public enum PubSubIncomingMessageType
+{
+    Pong,
+    Reconnect,
+    Response,
+    Message
 }
