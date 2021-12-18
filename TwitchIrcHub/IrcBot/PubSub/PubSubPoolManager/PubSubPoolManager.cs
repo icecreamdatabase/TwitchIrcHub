@@ -1,4 +1,7 @@
 ﻿using System.Text.Json;
+using TwitchIrcHub.ExternalApis.Discord;
+using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
+using TwitchIrcHub.ExternalApis.Twitch.Helix.Users.DataTypes;
 using TwitchIrcHub.Helper;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
@@ -31,7 +34,8 @@ public class PubSubPoolManager : IPubSubPoolManager
         //IPubSubClient pubSubClient = _pubSubClientFactory.Create();
         //pubSubClient.Init(this);
         //_pubSubClients.Add(pubSubClient);
-        Topics.Add($"whispers.{_botInstance.BotInstanceData.UserId}");
+        if (_botInstance.BotInstanceData.EnabledWhisperLog)
+            Topics.Add($"whispers.{_botInstance.BotInstanceData.UserId}");
         UpdateTopics();
         return Task.CompletedTask;
     }
@@ -101,13 +105,13 @@ public class PubSubPoolManager : IPubSubPoolManager
             case PubSubTopics.Whispers:
             {
                 string botUserId = splitTopic[1];
-                HandleIncomingWhispers(dataMessage, botUserId);
+                await HandleIncomingWhispers(dataMessage, botUserId);
                 break;
             }
         }
     }
 
-    private static void HandleIncomingWhispers(string dataMessage, string botUserId)
+    private static async Task HandleIncomingWhispers(string dataMessage, string botUserId)
     {
         PubSubWhisperBase<object>? parsed =
             JsonSerializer.Deserialize<PubSubWhisperBase<object>>(dataMessage, GlobalStatics.JsonCaseInsensitive);
@@ -126,11 +130,39 @@ public class PubSubPoolManager : IPubSubPoolManager
                 PubSubWhisperBase<PubSubWhisperMessage>? parsedSent =
                     JsonSerializer.Deserialize<PubSubWhisperBase<PubSubWhisperMessage>>(dataMessage,
                         GlobalStatics.JsonCaseInsensitive);
+
+                if (parsedSent != null)
+                {
+                    TwitchUsersResult? result = await TwitchUsers.User(login: parsedSent.DataObject.Tags.Login);
+                    DiscordLogger.TwitchWhisper(
+                        $"RECEIVED: #{parsedSent.DataObject.Tags.DisplayName} --> #{parsedSent.DataObject.Recipient.DisplayName}",
+                        parsedSent.DataObject.Body,
+                        parsedSent.DataObject.SentTs,
+                        parsedSent.DataObject.Tags.Color ?? "#000000",
+                        parsedSent.DataObject.Tags.Login,
+                        result?.ProfileImageUrl
+                    );
+                }
+
                 break;
             case PubSubIncomingWhisperType.WhisperReceived:
                 PubSubWhisperBase<PubSubWhisperMessage>? parsedReceived =
                     JsonSerializer.Deserialize<PubSubWhisperBase<PubSubWhisperMessage>>(dataMessage,
                         GlobalStatics.JsonCaseInsensitive);
+
+                if (parsedReceived != null)
+                {
+                    TwitchUsersResult? result = await TwitchUsers.User(login: parsedReceived.DataObject.Tags.Login);
+                    DiscordLogger.TwitchWhisper(
+                        $"RECEIVED: #{parsedReceived.DataObject.Recipient.DisplayName} <-- #{parsedReceived.DataObject.Tags.DisplayName}",
+                        parsedReceived.DataObject.Body,
+                        parsedReceived.DataObject.SentTs,
+                        parsedReceived.DataObject.Tags.Color ?? "#000000",
+                        parsedReceived.DataObject.Tags.Login,
+                        result?.ProfileImageUrl
+                    );
+                }
+
                 break;
             default:
                 break;

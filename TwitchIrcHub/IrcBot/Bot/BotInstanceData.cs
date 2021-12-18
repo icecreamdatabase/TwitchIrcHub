@@ -18,6 +18,7 @@ public class BotInstanceData : IBotInstanceData
 
     public int UserId { get; private set; }
     public string UserName { get; private set; } = null!;
+    public bool EnabledWhisperLog{ get; private set; } = false;
     public bool Known { get; private set; } = false;
     public bool Verified { get; private set; } = false;
     public string AccessToken { get; private set; } = null!;
@@ -41,6 +42,7 @@ public class BotInstanceData : IBotInstanceData
             throw new Exception($"No DB data for {botUserId}");
 
         UserName = bot.UserName;
+        EnabledWhisperLog = bot.EnabledWhisperLog;
         Known = bot.Known;
         Verified = bot.Verified;
         AccessToken = bot.AccessToken;

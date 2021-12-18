@@ -13,6 +13,18 @@ public static class TwitchUsers
 
     private static readonly SemaphoreSlim CacheAccessSemaphoreSlim = new(1, 1);
 
+    public static async Task<TwitchUsersResult?> User(int? id = null, string? login = null)
+    {
+        List<string> ids = new();
+        List<string> logins = new();
+        if (id.HasValue)
+            ids.Add(id.Value.ToString());
+        else if (!string.IsNullOrEmpty(login))
+            logins.Add(login);
+        
+        return (await Users(ids, logins))?.FirstOrDefault();
+    }
+
     public static async Task<List<TwitchUsersResult>?> Users(List<string>? ids = null, List<string>? logins = null)
     {
         // We can't set defaults for none primitives

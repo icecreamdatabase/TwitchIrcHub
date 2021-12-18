@@ -5,7 +5,7 @@ namespace TwitchIrcHub.ExternalApis.Discord;
 
 public class DiscordLogger
 {
-    private const int DiscordWebhookGroupingDelay = 2000;
+    private const int DiscordWebhookGroupingDelay = 1000;
     private readonly ConcurrentQueue<WebhookPostContent> _messageQueue = new();
 
     private static DiscordLogger GetInstance { get; } = new();
@@ -35,6 +35,30 @@ public class DiscordLogger
         );
     }
 
+    public static void TwitchWhisper(string title, string messageBody, int sendTs, string color, string login,
+        string? pfpUrl)
+    {
+        WebhookEmbeds embed = new()
+        {
+            Title = title,
+            Timestamp = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
+            Description = messageBody,
+            Color = GetDecimalFromHexString(color),
+            Footer = new WebhookFooter
+            {
+                Text = login,
+                IconUrl = pfpUrl
+            }
+        };
+        WebhookPostContent content = new()
+        {
+            Username = nameof(TwitchIrcHub),
+            Embeds = new List<WebhookEmbeds> { embed },
+            LogChannel =  LogChannel.Whisper
+        };
+        GetInstance._messageQueue.Enqueue(content);
+    }
+
     private static void Manual(string title, string description, int color, LogChannel logChannel = LogChannel.Main)
     {
         WebhookEmbeds embed = new()
@@ -51,7 +75,7 @@ public class DiscordLogger
         WebhookPostContent content = new()
         {
             Username = nameof(TwitchIrcHub),
-            Embeds = new List<WebhookEmbeds> {embed},
+            Embeds = new List<WebhookEmbeds> { embed },
             LogChannel = logChannel
         };
         GetInstance._messageQueue.Enqueue(content);
@@ -109,11 +133,11 @@ public class DiscordLogger
                 {
                     Dictionary<string, string> files = new()
                     {
-                        {"Stacktrace", content.FileContent}
+                        { "Stacktrace", content.FileContent }
                     };
 
-                    DiscordWebhook.SendFilesWebhook(content.LogChannel, content.Username, files,
-                        content.PayloadJson);
+                    DiscordWebhook.SendFilesWebhook(content.LogChannel, content.Username ?? "", files,
+                        content.PayloadJson ?? "{}");
                 }
             }
         }

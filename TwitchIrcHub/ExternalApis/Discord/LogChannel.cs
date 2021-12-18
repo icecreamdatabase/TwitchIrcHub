@@ -2,5 +2,6 @@
 
 public enum LogChannel
 {
-    Main
+    Main,
+    Whisper
 }

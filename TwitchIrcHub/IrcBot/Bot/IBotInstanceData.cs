@@ -6,6 +6,7 @@ public interface IBotInstanceData
 {
     public int UserId { get; }
     public string UserName { get; }
+    public bool EnabledWhisperLog { get; }
     public bool Known { get; }
     public bool Verified { get; }
     public string AccessToken { get; }
