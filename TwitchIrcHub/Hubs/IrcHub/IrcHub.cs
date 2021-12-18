@@ -2,6 +2,7 @@
 using TwitchIrcHub.BackgroundServices;
 using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
+using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 using TwitchIrcHub.Model;
 
 namespace TwitchIrcHub.Hubs.IrcHub;
@@ -76,5 +77,14 @@ public class IrcHub : Hub<IIrcHub>
         Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} (AppId: {Context.UserIdentifier})");
         ConnectedClients.Remove(Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task SendPrivMsg(PrivMsgToTwitch privMsgToTwitch)
+    {
+        IBotInstance? bot = BotManager.GetBotInstance(privMsgToTwitch.BotUserId);
+        if (bot == null)
+            throw new HubException($"No bot with that userId {privMsgToTwitch.BotUserId}");
+        
+        bot.SendPrivMsg(privMsgToTwitch);
     }
 }

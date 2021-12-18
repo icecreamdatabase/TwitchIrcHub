@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class PrivMsgToTwitch
 {
     public int BotUserId { get; }
@@ -9,10 +11,10 @@ public class PrivMsgToTwitch
     public string Message { get; set; }
     public string? ClientNonce { get; }
     public string? ReplyParentMsgId { get; }
-    public bool UseSameSendConnectionAsPreviousMsg { get; set; }
+    public bool UseSameSendConnectionAsPreviousMsg { get; }
 
-    public PrivMsgToTwitch(int botUserId, string roomName, string message, string? clientNonce = null, string? replyParentMsgId = null,
-        bool useSameSendConnectionAsPreviousMsg = false)
+    public PrivMsgToTwitch(int botUserId, string roomName, string message, string? clientNonce = null,
+        string? replyParentMsgId = null, bool useSameSendConnectionAsPreviousMsg = false)
     {
         BotUserId = botUserId;
         RoomName = roomName.StartsWith('#') ? roomName : $"#{roomName}";
@@ -26,7 +28,7 @@ public class PrivMsgToTwitch
     {
         //@client-nonce=xxx;reply-parent-msg-id=xxx PRIVMSG #channel :xxxxxx `
         StringBuilder sb = new StringBuilder();
-        
+
         Dictionary<string, string> preamble = new();
         if (ClientNonce != null)
             preamble.Add("client-nonce", ClientNonce);
