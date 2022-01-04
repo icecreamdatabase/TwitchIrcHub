@@ -143,11 +143,14 @@ public class PubSubClient : IPubSubClient
         rawMessage = rawMessage.Trim();
         if (rawMessage.Length <= 1)
             return;
-        PubSubIncomingMessage? parsed = JsonSerializer.Deserialize<PubSubIncomingMessage>(rawMessage, GlobalStatics.JsonCaseInsensitive);
+        PubSubIncomingMessage? parsed =
+            JsonSerializer.Deserialize<PubSubIncomingMessage>(rawMessage, GlobalStatics.JsonCaseInsensitive);
         if (parsed == null)
             return;
+        
+        if (parsed.Type != PubSubIncomingMessageType.Pong)
+            _logger.LogInformation("PubSub: {Message}", rawMessage.Trim());
 
-        _logger.LogInformation("PubSub: {Message}", rawMessage.Trim());
         switch (parsed.Type)
         {
             case PubSubIncomingMessageType.Pong:
@@ -195,12 +198,16 @@ public class PubSubClient : IPubSubClient
 
     public Task SendMessage(PubSubOutGoingMessage outGoingMessage)
     {
-        return SendRawMessage(JsonSerializer.Serialize(outGoingMessage, GlobalStatics.JsonIgnoreNullValues));
+        return SendRawMessage(
+            JsonSerializer.Serialize(outGoingMessage, GlobalStatics.JsonIgnoreNullValues),
+            outGoingMessage.Type.ToLowerInvariant() != "ping"
+        );
     }
 
-    private async Task SendRawMessage(string message)
+    private async Task SendRawMessage(string message, bool shouldLog = true)
     {
-        _logger.LogInformation("Sending: {Message}", message);
+        if (shouldLog)
+            _logger.LogInformation("Sending: {Message}", message);
         byte[] sendBytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> sendBuffer = new(sendBytes);
         if (_clientWebSocket is { State: WebSocketState.Open })
