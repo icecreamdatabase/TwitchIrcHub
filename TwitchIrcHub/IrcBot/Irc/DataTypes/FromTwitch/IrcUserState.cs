@@ -11,8 +11,8 @@ public class IrcUserState
     /* --------------------------------------------------------------------------- */
     /* ------------------------------ Required tags ------------------------------ */
     /* --------------------------------------------------------------------------- */
-    public Dictionary<string, int> BadgeInfo { get; }
-    public Dictionary<string, int> Badges { get; }
+    public Dictionary<string, string> BadgeInfo { get; }
+    public Dictionary<string, string> Badges { get; }
     public string Color { get; }
     public string DisplayName { get; }
     public string[] EmoteSets { get; }

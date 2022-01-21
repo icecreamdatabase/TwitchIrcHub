@@ -2,17 +2,17 @@
 
 public static class IrcParseHelper
 {
-    public static Dictionary<string, int> ParseBadgeData(string? value)
+    public static Dictionary<string, string> ParseBadgeData(string? value)
     {
         if (value == null)
-            return new Dictionary<string, int>();
+            return new Dictionary<string, string>();
 
         return value.Split(',')
             .Where(input => input.Contains('/'))
             .Select(input => input.Split('/'))
             .ToDictionary(
                 split => split[0],
-                split => int.Parse(split[1])
+                split => split[1]
             );
     }
 

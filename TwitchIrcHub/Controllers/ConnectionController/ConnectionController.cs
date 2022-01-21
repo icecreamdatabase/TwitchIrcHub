@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TwitchIrcHub.Authentication.Policies;
+using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
 using TwitchIrcHub.Model;
 using TwitchIrcHub.Model.Schema;
 
@@ -38,60 +40,107 @@ public class ConnectionController : ControllerBase
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> Put([FromQuery] int? botUserId, [FromQuery] int? roomId,
+    public async Task<ActionResult> Put([FromBody] ConnectionRequestInput connectionRequestInput,
         [FromServices] IrcHubDbContext ircHubDbContext)
     {
-        if (botUserId == null || roomId == null)
-            return BadRequest();
-
         string? appIdStr = HttpContext.User.Identity?.Name;
 
         if (!int.TryParse(appIdStr, out int appId))
             return BadRequest();
 
-        bool connectionExists = ircHubDbContext.Connections.Any(connection => connection.RegisteredAppId == appId &&
-                                                                              connection.BotUserId == botUserId &&
-                                                                              connection.RoomId == roomId);
-        if (connectionExists)
-            return NoContent();
+        List<int> existingConnections = ircHubDbContext.Connections
+            .Where(connection => connection.RegisteredAppId == appId &&
+                                 connection.BotUserId == connectionRequestInput.BotUserId)
+            .Select(connection => connection.RoomId)
+            .ToList();
 
-        ircHubDbContext.Connections.Add(new Connection
-        {
-            BotUserId = botUserId.Value,
-            RoomId = roomId.Value,
-            RegisteredAppId = appId
-        });
+        List<int> existingChannels = ircHubDbContext.Channels.Select(channel => channel.RoomId).ToList();
+
+        List<int> connectionsToAdd = connectionRequestInput.RoomIds.Except(existingConnections).ToList();
+        List<int> channelsToAdd = connectionRequestInput.RoomIds.Except(existingChannels).ToList();
+
+        Dictionary<string, string> idsToLogins = await TwitchUsers.IdsToLoginsWithCache(channelsToAdd);
+
+        // Add required channels
+        if (channelsToAdd.Count > 0)
+            await ircHubDbContext.Channels.AddRangeAsync(
+                channelsToAdd
+                    .Select(roomId => new Channel
+                    {
+                        RoomId = roomId,
+                        ChannelName = idsToLogins[roomId.ToString()]
+                    })
+            );
+
+        // Add connections
+        if (connectionsToAdd.Count > 0)
+            await ircHubDbContext.Connections.AddRangeAsync(
+                connectionsToAdd
+                    .Select(roomId => new Connection
+                    {
+                        BotUserId = connectionRequestInput.BotUserId,
+                        RoomId = roomId,
+                        RegisteredAppId = appId
+                    })
+            );
+
+        // Remove connections
+        List<int> roomIdsToRemove = existingChannels.Except(connectionRequestInput.RoomIds).ToList();
+
+        if (roomIdsToRemove.Count > 0)
+            ircHubDbContext.Connections.RemoveRange(
+                ircHubDbContext.Connections
+                    .Where(connection => connection.RegisteredAppId == appId &&
+                                         connection.BotUserId == connectionRequestInput.BotUserId &&
+                                         roomIdsToRemove.Contains(connection.RoomId)
+                    )
+            );
+
         await ircHubDbContext.SaveChangesAsync();
 
+        // Remove orphaned channels
+        ircHubDbContext.Channels.RemoveRange(
+            ircHubDbContext.Channels
+                .Include(channel => channel.Connections)
+                .Where(channel => channel.Connections.Count == 0)
+        );
+
+        await ircHubDbContext.SaveChangesAsync();
         return NoContent();
     }
 
+    /*
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Delete([FromQuery] int? botUserId, [FromQuery] int? roomId,
+    public async Task<ActionResult> Delete([FromBody] ConnectionRequestInput connectionRequestInput,
         [FromServices] IrcHubDbContext ircHubDbContext)
     {
-        if (botUserId == null || roomId == null)
-            return BadRequest();
-
         string? appIdStr = HttpContext.User.Identity?.Name;
 
         if (!int.TryParse(appIdStr, out int appId))
             return BadRequest();
 
-        Connection? connection = ircHubDbContext.Connections.FirstOrDefault(connection =>
-            connection.RegisteredAppId == appId &&
-            connection.BotUserId == botUserId &&
-            connection.RoomId == roomId
+        // Remove connections
+        ircHubDbContext.Connections.RemoveRange(
+            ircHubDbContext.Connections
+                .Where(connection => connection.RegisteredAppId == appId &&
+                                     connection.BotUserId == connectionRequestInput.BotUserId &&
+                                     connectionRequestInput.RoomIds.Contains(connection.RoomId)
+                )
         );
-        if (connection == null)
-            return NotFound();
 
-        ircHubDbContext.Connections.Remove(connection);
         await ircHubDbContext.SaveChangesAsync();
 
+        // Remove orphaned channels
+        ircHubDbContext.Channels.RemoveRange(
+            ircHubDbContext.Channels
+                .Include(channel => channel.Connections)
+                .Where(channel => channel.Connections.Count == 0)
+        );
+
+        await ircHubDbContext.SaveChangesAsync();
         return NoContent();
     }
+    */
 }
