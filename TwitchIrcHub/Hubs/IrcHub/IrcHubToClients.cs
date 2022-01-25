@@ -5,66 +5,66 @@ namespace TwitchIrcHub.Hubs.IrcHub;
 
 public static class IrcHubToClients
 {
-    public static async Task SendNewIrcClearChat(this IHubContext<IrcHub, IIrcHub> context, 
-        IEnumerable<int> appIds, IrcClearChat ircClearChat)
+    public static async Task SendNewIrcClearChat(this IHubContext<IrcHub, IIrcHub> context,
+        IEnumerable<int> appIds, int botUserId, IrcClearChat ircClearChat)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcClearChat(ircClearChat);
+            await context.Clients.Group(appId.ToString()).NewIrcClearChat(botUserId, ircClearChat);
     }
 
     public static async Task SendNewIrcClearMsg(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcClearMsg ircClearMsg)
+        IEnumerable<int> appIds, int botUserId, IrcClearMsg ircClearMsg)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcClearMsg(ircClearMsg);
+            await context.Clients.Group(appId.ToString()).NewIrcClearMsg(botUserId, ircClearMsg);
     }
 
     public static async Task SendNewIrcGlobalUserState(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcGlobalUserState ircGlobalUserState)
+        IEnumerable<int> appIds, int botUserId, IrcGlobalUserState ircGlobalUserState)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcGlobalUserState(ircGlobalUserState);
+            await context.Clients.Group(appId.ToString()).NewIrcGlobalUserState(botUserId, ircGlobalUserState);
     }
 
     public static async Task SendNewIrcHostTarget(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcHostTarget ircHostTarget)
+        IEnumerable<int> appIds, int botUserId, IrcHostTarget ircHostTarget)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcHostTarget(ircHostTarget);
+            await context.Clients.Group(appId.ToString()).NewIrcHostTarget(botUserId, ircHostTarget);
     }
 
     public static async Task SendNewIrcNotice(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcNotice ircNotice)
+        IEnumerable<int> appIds, int botUserId, IrcNotice ircNotice)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcNotice(ircNotice);
+            await context.Clients.Group(appId.ToString()).NewIrcNotice(botUserId, ircNotice);
     }
 
     public static async Task SendNewIrcPrivMsg(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcPrivMsg ircPrivMsg)
+        IEnumerable<int> appIds, int botUserId, IrcPrivMsg ircPrivMsg)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcPrivMsg(ircPrivMsg);
+            await context.Clients.Group(appId.ToString()).NewIrcPrivMsg(botUserId, ircPrivMsg);
     }
 
     public static async Task SendNewIrcRoomState(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcRoomState ircRoomState)
+        IEnumerable<int> appIds, int botUserId, IrcRoomState ircRoomState)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcRoomState(ircRoomState);
+            await context.Clients.Group(appId.ToString()).NewIrcRoomState(botUserId, ircRoomState);
     }
 
     public static async Task SendNewIrcUserNotice(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcUserNotice ircUserNotice)
+        IEnumerable<int> appIds, int botUserId, IrcUserNotice ircUserNotice)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcUserNotice(ircUserNotice);
+            await context.Clients.Group(appId.ToString()).NewIrcUserNotice(botUserId, ircUserNotice);
     }
 
     public static async Task SendNewIrcUserState(this IHubContext<IrcHub, IIrcHub> context,
-        IEnumerable<int> appIds, IrcUserState ircUserState)
+        IEnumerable<int> appIds, int botUserId, IrcUserState ircUserState)
     {
         foreach (int appId in appIds)
-            await context.Clients.Group(appId.ToString()).NewIrcUserState(ircUserState);
+            await context.Clients.Group(appId.ToString()).NewIrcUserState(botUserId, ircUserState);
     }
 }

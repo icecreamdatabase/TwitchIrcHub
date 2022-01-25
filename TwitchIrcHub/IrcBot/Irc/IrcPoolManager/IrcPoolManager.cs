@@ -230,7 +230,7 @@ public class IrcPoolManager : IIrcPoolManager
             {
                 IrcClearChat ircClearChat = new IrcClearChat(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircClearChat.RoomId);
-                await IrcHubContext.SendNewIrcClearChat(appIds, ircClearChat);
+                await IrcHubContext.SendNewIrcClearChat(appIds, _botInstance.BotInstanceData.UserId, ircClearChat);
                 break;
             }
             case IrcCommands.ClearMsg:
@@ -239,7 +239,7 @@ public class IrcPoolManager : IIrcPoolManager
                 List<int> appIds = ircClearMsg.RoomId != null
                     ? GetAppIdsFromConnections(ircClearMsg.RoomId.Value)
                     : await GetAppIdsFromConnections(ircClearMsg.RoomName);
-                await IrcHubContext.SendNewIrcClearMsg(appIds, ircClearMsg);
+                await IrcHubContext.SendNewIrcClearMsg(appIds, _botInstance.BotInstanceData.UserId, ircClearMsg);
                 break;
             }
             case IrcCommands.GlobalUserState:
@@ -247,21 +247,21 @@ public class IrcPoolManager : IIrcPoolManager
                 IrcGlobalUserState ircGlobalUserState = new IrcGlobalUserState(ircMessage);
                 GlobalUserStateCache.LastGlobalUserState = ircGlobalUserState;
                 List<int> appIds = GetAppIdsFromConnections();
-                await IrcHubContext.SendNewIrcGlobalUserState(appIds, ircGlobalUserState);
+                await IrcHubContext.SendNewIrcGlobalUserState(appIds, _botInstance.BotInstanceData.UserId, ircGlobalUserState);
                 break;
             }
             case IrcCommands.HostTarget:
             {
                 IrcHostTarget ircHostTarget = new IrcHostTarget(ircMessage);
                 List<int> appIds = await GetAppIdsFromConnections(ircHostTarget.RoomName);
-                await IrcHubContext.SendNewIrcHostTarget(appIds, ircHostTarget);
+                await IrcHubContext.SendNewIrcHostTarget(appIds, _botInstance.BotInstanceData.UserId, ircHostTarget);
                 break;
             }
             case IrcCommands.Notice:
             {
                 IrcNotice ircNotice = new IrcNotice(ircMessage);
                 List<int> appIds = await GetAppIdsFromConnections(ircNotice.RoomName);
-                await IrcHubContext.SendNewIrcNotice(appIds, ircNotice);
+                await IrcHubContext.SendNewIrcNotice(appIds, _botInstance.BotInstanceData.UserId, ircNotice);
                 break;
             }
             case IrcCommands.PrivMsg:
@@ -271,7 +271,7 @@ public class IrcPoolManager : IIrcPoolManager
                 //_logger.LogInformation("{Command}: {Channel}: {Msg}", ircMessage.IrcCommand, ircPrivMsg.RoomName, ircPrivMsg.Message);
 
                 List<int> appIds = GetAppIdsFromConnections(ircPrivMsg.RoomId);
-                await IrcHubContext.SendNewIrcPrivMsg(appIds, ircPrivMsg);
+                await IrcHubContext.SendNewIrcPrivMsg(appIds, _botInstance.BotInstanceData.UserId, ircPrivMsg);
 
                 //DiscordLogger.Log(LogLevel.Information, JsonSerializer.Serialize(ircPrivMsg, new JsonSerializerOptions { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull}));
                 break;
@@ -280,14 +280,14 @@ public class IrcPoolManager : IIrcPoolManager
             {
                 IrcRoomState ircRoomState = new IrcRoomState(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircRoomState.RoomId);
-                await IrcHubContext.SendNewIrcRoomState(appIds, ircRoomState);
+                await IrcHubContext.SendNewIrcRoomState(appIds, _botInstance.BotInstanceData.UserId, ircRoomState);
                 break;
             }
             case IrcCommands.UserNotice:
             {
                 IrcUserNotice ircUserNotice = new IrcUserNotice(ircMessage);
                 List<int> appIds = GetAppIdsFromConnections(ircUserNotice.RoomId);
-                await IrcHubContext.SendNewIrcUserNotice(appIds, ircUserNotice);
+                await IrcHubContext.SendNewIrcUserNotice(appIds, _botInstance.BotInstanceData.UserId, ircUserNotice);
                 break;
             }
             case IrcCommands.UserState:
@@ -295,7 +295,7 @@ public class IrcPoolManager : IIrcPoolManager
                 IrcUserState ircUserState = new IrcUserState(ircMessage);
                 UserStateCache.AddUserState(ircUserState);
                 List<int> appIds = await GetAppIdsFromConnections(ircUserState.RoomName);
-                await IrcHubContext.SendNewIrcUserState(appIds, ircUserState);
+                await IrcHubContext.SendNewIrcUserState(appIds, _botInstance.BotInstanceData.UserId, ircUserState);
                 break;
             }
             default:

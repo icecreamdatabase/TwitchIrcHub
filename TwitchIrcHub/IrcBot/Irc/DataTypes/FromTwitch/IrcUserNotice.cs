@@ -29,7 +29,7 @@ public class IrcUserNotice
     /* --------------------- Non-tag but still required data --------------------- */
     /* --------------------------------------------------------------------------- */
     public string RoomName { get; }
-    public string UserName { get; }
+    public string? UserInput { get; }
 
     /* --------------------------------------------------------------------------- */
     /* ----------------------------- Conditional tags ---------------------------- */
@@ -88,8 +88,7 @@ public class IrcUserNotice
         ircMessage.IrcMessageTags.TryGetValue("msg-param-months", out string? msgParamMonths);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-promo-gift-total", out string? msgParamPromoGiftTotal);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-promo-name", out string? msgParamPromoName);
-        ircMessage.IrcMessageTags.TryGetValue("msg-param-recipient-display-name",
-            out string? msgParamRecipientDisplayName);
+        ircMessage.IrcMessageTags.TryGetValue("msg-param-recipient-display-name", out string? msgParamRecipientDisplayName);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-recipient-id", out string? msgParamRecipientId);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-recipient-user-name", out string? msgParamRecipientUserName);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-sender-login", out string? msgParamSenderLogin);
@@ -118,8 +117,6 @@ public class IrcUserNotice
             throw new Exception($"USERNOTICE without valid userId:\n{ircMessage.RawSource}");
         if (ircMessage.IrcParameters.Count < 1)
             throw new Exception($"USERNOTICE without valid roomName:\n{ircMessage.RawSource}");
-        if (string.IsNullOrEmpty(ircMessage.IrcPrefix?.Username))
-            throw new Exception($"USERNOTICE without valid userName:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(tmiSentTs))
             throw new Exception($"USERNOTICE without valid timestamp:\n{ircMessage.RawSource}");
 
@@ -134,7 +131,7 @@ public class IrcUserNotice
         Emotes = IrcParseHelper.ParseEmoteData(emotes);
         Id = id;
         Login = login;
-        Message = message;
+        Message = message; // TODO: is this ever used?
         MessageId = Enum.TryParse(
             messageId,
             true,
@@ -151,7 +148,8 @@ public class IrcUserNotice
         /* --------------------- Non-tag but still required data --------------------- */
         /* --------------------------------------------------------------------------- */
         RoomName = ircMessage.IrcParameters[0][1..];
-        UserName = ircMessage.IrcPrefix.Username;
+        if (ircMessage.IrcParameters.Count > 1)
+            UserInput = ircMessage.IrcParameters[1]; 
 
         /* --------------------------------------------------------------------------- */
         /* ----------------------------- Conditional tags ---------------------------- */

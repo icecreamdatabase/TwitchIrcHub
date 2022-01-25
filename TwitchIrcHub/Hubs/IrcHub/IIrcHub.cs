@@ -6,13 +6,13 @@ public interface IIrcHub
 {
     Task ConnId(string connectionId);
 
-    Task NewIrcClearMsg(IrcClearMsg ircClearMsg);
-    Task NewIrcClearChat(IrcClearChat ircClearChat);
-    Task NewIrcGlobalUserState(IrcGlobalUserState ircGlobalUserState);
-    Task NewIrcHostTarget(IrcHostTarget ircHostTarget);
-    Task NewIrcNotice(IrcNotice ircNotice);
-    Task NewIrcPrivMsg(IrcPrivMsg ircPrivMsg);
-    Task NewIrcRoomState(IrcRoomState ircRoomState);
-    Task NewIrcUserNotice(IrcUserNotice ircUserNotice);
-    Task NewIrcUserState(IrcUserState ircUserState);
+    Task NewIrcClearMsg(int botUserId, IrcClearMsg ircClearMsg);
+    Task NewIrcClearChat(int botUserId, IrcClearChat ircClearChat);
+    Task NewIrcGlobalUserState(int botUserId, IrcGlobalUserState ircGlobalUserState);
+    Task NewIrcHostTarget(int botUserId, IrcHostTarget ircHostTarget);
+    Task NewIrcNotice(int botUserId, IrcNotice ircNotice);
+    Task NewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg);
+    Task NewIrcRoomState(int botUserId, IrcRoomState ircRoomState);
+    Task NewIrcUserNotice(int botUserId, IrcUserNotice ircUserNotice);
+    Task NewIrcUserState(int botUserId, IrcUserState ircUserState);
 }

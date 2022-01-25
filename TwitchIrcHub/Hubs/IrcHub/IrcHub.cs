@@ -27,11 +27,11 @@ public class IrcHub : Hub<IIrcHub>
             return base.OnConnectedAsync();
         }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, Context.UserIdentifier);;
+        await Groups.AddToGroupAsync(Context.ConnectionId, Context.UserIdentifier);
+        ;
         ConnectedClients.Add(Context.ConnectionId, Context.UserIdentifier);
         Console.WriteLine($"--> Connection Opened: {Context.ConnectionId} (AppId: {Context.UserIdentifier})");
         await Clients.Client(Context.ConnectionId).ConnId(Context.ConnectionId);
-        // TODO: Send all known UserState and GlobalUserState to client.
 
         if (!int.TryParse(Context.UserIdentifier, out int appId))
         {
@@ -60,11 +60,15 @@ public class IrcHub : Hub<IIrcHub>
             // GlobalUserState
             IrcGlobalUserState? globalUserState = botInstance.GetGlobalUserState();
             if (globalUserState != null)
-                sendTasks.Add(Clients.Client(Context.ConnectionId).NewIrcGlobalUserState(globalUserState));
+                sendTasks.Add(Clients.Client(Context.ConnectionId).NewIrcGlobalUserState(botUserId, globalUserState));
 
             // normal UserStates
             List<IrcUserState> userStates = await botInstance.GetUserStatesForChannels(roomIds);
-            sendTasks.AddRange(userStates.Select(Clients.Client(Context.ConnectionId).NewIrcUserState));
+            sendTasks.AddRange(userStates
+                .Select(ircUserState =>
+                    Clients.Client(Context.ConnectionId).NewIrcUserState(botUserId, ircUserState)
+                )
+            );
         }
 
         await Task.WhenAll(sendTasks.ToArray());
@@ -84,7 +88,7 @@ public class IrcHub : Hub<IIrcHub>
         IBotInstance? bot = BotManager.GetBotInstance(privMsgToTwitch.BotUserId);
         if (bot == null)
             throw new HubException($"No bot with that userId {privMsgToTwitch.BotUserId}");
-        
+
         bot.SendPrivMsg(privMsgToTwitch);
     }
 }
