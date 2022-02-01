@@ -53,6 +53,8 @@ public class IrcUserNotice
     public UserNoticeRitualName? MsgParamRitualName { get; }
     public string? MsgParamThreshold { get; }
     public string? MsgParamGiftMonths { get; }
+    public string? MsgParamMassGiftCount { get; }
+    public string? MsgParamOriginId { get; }
 
     public IrcUserNotice(IrcMessage ircMessage)
     {
@@ -101,6 +103,8 @@ public class IrcUserNotice
         ircMessage.IrcMessageTags.TryGetValue("msg-param-ritual-name", out string? msgParamRitualName);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-threshold", out string? msgParamThreshold);
         ircMessage.IrcMessageTags.TryGetValue("msg-param-gift-months", out string? msgParamGiftMonths);
+        ircMessage.IrcMessageTags.TryGetValue("msg-param-mass-gift-count", out string? msgParamMassGiftCount);
+        ircMessage.IrcMessageTags.TryGetValue("msg-param-origin-id", out string? msgParamOriginId);
 
         // Exceptions for nullable / missing tags that are not allowed to be missing.
         if (string.IsNullOrEmpty(id))
@@ -179,6 +183,8 @@ public class IrcUserNotice
             : UserNoticeRitualName.ParsingError;
         MsgParamThreshold = msgParamThreshold;
         MsgParamGiftMonths = msgParamGiftMonths;
+        MsgParamMassGiftCount = msgParamMassGiftCount;
+        MsgParamOriginId = msgParamOriginId;
     }
 }
 
@@ -196,7 +202,8 @@ public enum UserNoticeMessageId
     Raid,
     Unraid,
     Ritual,
-    BitsBadgeTier
+    BitsBadgeTier,
+    PrimePaidUpgrade
 }
 
 public enum UserNoticeRitualName
