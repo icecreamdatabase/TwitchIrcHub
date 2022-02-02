@@ -8,7 +8,7 @@
   },
   "AllowedHosts": "*",
   "ConnectionStrings": {
-    "IrcHubDb": "server=XXXX;database=XXXX;user=XXXX;password=XXXX"
+    "IrcHubDb": "server=/root/mysqld.sock;protocol=unix;database=XXXX;user=XXXX;password=XXXX"
   },
   "DiscordWebhooks": {
     "Main": "000000000000000000/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
