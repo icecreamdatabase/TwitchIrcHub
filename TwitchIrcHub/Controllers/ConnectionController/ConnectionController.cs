@@ -65,6 +65,7 @@ public class ConnectionController : ControllerBase
         if (channelsToAdd.Count > 0)
             await ircHubDbContext.Channels.AddRangeAsync(
                 channelsToAdd
+                    .Where(roomId => idsToLogins.ContainsKey(roomId.ToString()))
                     .Select(roomId => new Channel
                     {
                         RoomId = roomId,
@@ -76,6 +77,7 @@ public class ConnectionController : ControllerBase
         if (connectionsToAdd.Count > 0)
             await ircHubDbContext.Connections.AddRangeAsync(
                 connectionsToAdd
+                    .Where(roomId => idsToLogins.ContainsKey(roomId.ToString()))
                     .Select(roomId => new Connection
                     {
                         BotUserId = connectionRequestInput.BotUserId,
