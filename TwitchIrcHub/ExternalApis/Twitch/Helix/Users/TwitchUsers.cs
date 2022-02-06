@@ -66,7 +66,7 @@ public static class TwitchUsers
         return users?.Data ?? new List<TwitchUsersResult>();
     }
 
-    public static Task<Dictionary<string, string>> IdsToLoginsWithCache(List<int> ids)
+    public static Task<Dictionary<string, string>> IdsToLoginsWithCache(IEnumerable<int> ids)
     {
         return IdsToLoginsWithCache(ids.Select(id => id.ToString()).ToList());
     }

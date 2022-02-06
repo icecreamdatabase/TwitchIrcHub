@@ -157,7 +157,8 @@ public class IrcPoolManager : IIrcPoolManager
         if (!privMsgToTwitch.UseSameSendConnectionAsPreviousMsg)
             _ircLastUsedSendClientIndex = (_ircLastUsedSendClientIndex + 1) % _ircSendClients.Count;
 
-        _logger.LogInformation("{Line}", privMsgToTwitch.ToString());
+        _logger.LogInformation("{BotUserName} ({BotUserId}) sending: {Line}",
+            _botInstance.BotInstanceData.UserName, _botInstance.BotInstanceData.UserId, privMsgToTwitch.ToString());
 
         /* ---------- Send message ---------- */
         await _ircSendClients[_ircLastUsedSendClientIndex].SendLine(privMsgToTwitch.ToString());

@@ -59,7 +59,9 @@ public class ConnectionController : ControllerBase
         List<int> connectionsToAdd = connectionRequestInput.RoomIds.Except(existingConnections).ToList();
         List<int> channelsToAdd = connectionRequestInput.RoomIds.Except(existingChannels).ToList();
 
-        Dictionary<string, string> idsToLogins = await TwitchUsers.IdsToLoginsWithCache(channelsToAdd);
+        Dictionary<string, string> idsToLogins = await TwitchUsers.IdsToLoginsWithCache(
+            channelsToAdd.Concat(connectionsToAdd).Distinct()
+        );
 
         // Add required channels
         if (channelsToAdd.Count > 0)
