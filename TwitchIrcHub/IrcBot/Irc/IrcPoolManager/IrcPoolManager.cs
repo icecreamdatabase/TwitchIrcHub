@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Net;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TwitchIrcHub.ExternalApis.Twitch.Helix.Users;
@@ -12,6 +11,7 @@ using TwitchIrcHub.IrcBot.Irc.DataTypes.FromTwitch;
 using TwitchIrcHub.IrcBot.Irc.DataTypes.ToTwitch;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
 using TwitchIrcHub.Model;
+using TwitchIrcHub.Model.Schema;
 
 namespace TwitchIrcHub.IrcBot.Irc.IrcPoolManager;
 
@@ -82,6 +82,7 @@ public class IrcPoolManager : IIrcPoolManager
         string[] channels = IrcHubDbContext.Connections
             .Include(channel => channel.Channel)
             .Where(connection => connection.BotUserId == _botInstance.BotInstanceData.UserId)
+            .Where(connection => connection.Channel.Enabled)
             .Select(connection => connection.Channel.ChannelName)
             .Distinct()
             .ToArray();
@@ -247,7 +248,8 @@ public class IrcPoolManager : IIrcPoolManager
                 IrcGlobalUserState ircGlobalUserState = new IrcGlobalUserState(ircMessage);
                 GlobalUserStateCache.LastGlobalUserState = ircGlobalUserState;
                 List<int> appIds = GetAppIdsFromConnections();
-                await IrcHubContext.SendNewIrcGlobalUserState(appIds, _botInstance.BotInstanceData.UserId, ircGlobalUserState);
+                await IrcHubContext.SendNewIrcGlobalUserState(appIds, _botInstance.BotInstanceData.UserId,
+                    ircGlobalUserState);
                 break;
             }
             case IrcCommands.HostTarget:
@@ -261,6 +263,26 @@ public class IrcPoolManager : IIrcPoolManager
             {
                 IrcNotice ircNotice = new IrcNotice(ircMessage);
                 List<int> appIds = await GetAppIdsFromConnections(ircNotice.RoomName);
+
+                if (ircNotice.MessageId == NoticeMessageId.MsgBanned)
+                {
+                    _logger.LogInformation("Bot {BotUserName} ({BotId}) is banned from {RoomName}.",
+                        _botInstance.BotInstanceData.UserName, _botInstance.BotInstanceData.UserId, ircNotice.RoomName);
+                    IrcHubDbContext context = IrcHubDbContext;
+                    Channel? channelBannedIn = await context.Channels
+                        .FirstOrDefaultAsync(channel => channel.ChannelName.ToLower() == ircNotice.RoomName.ToLower());
+                    if (channelBannedIn != null)
+                    {
+                        channelBannedIn.Enabled = false;
+                        await context.SaveChangesAsync();
+                        UpdateChannels();
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not find the channel the bot is banned in in the DB.");
+                    }
+                }
+
                 await IrcHubContext.SendNewIrcNotice(appIds, _botInstance.BotInstanceData.UserId, ircNotice);
                 break;
             }
