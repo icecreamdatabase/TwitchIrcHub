@@ -6,6 +6,8 @@ services:
     container_name: TwitchIrcHub
     #env_file:
     #  - .env
+    environment:
+      - Logging__Console__FormatterName=
     network_mode: bridge
     volumes:
       - /var/run/mysqld/mysqld.sock:/root/mysqld.sock:rw
