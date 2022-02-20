@@ -205,7 +205,7 @@ public class IrcPoolManager : IIrcPoolManager
                 : privMsgToTwitch.Message.IndexOf(' ');
             if (spaceIndex == -1)
                 // No space found, fall back to the old magic character.
-                privMsgToTwitch.Message += "\U000E0000";
+                privMsgToTwitch.Message += " \U000E0000";
             else
                 // Insert a second space at the position of the first space.
                 privMsgToTwitch.Message = privMsgToTwitch.Message.Insert(spaceIndex, " ");
