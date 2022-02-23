@@ -265,10 +265,19 @@ public class IrcPoolManager : IIrcPoolManager
                 IrcNotice ircNotice = new IrcNotice(ircMessage);
                 List<int> appIds = await GetAppIdsFromConnections(ircNotice.RoomName);
 
-                if (ircNotice.MessageId == NoticeMessageId.MsgBanned)
+                if (ircNotice.MessageId is
+                    NoticeMessageId.MsgBanned or
+                    NoticeMessageId.MsgChannelSuspended or
+                    NoticeMessageId.MsgChannelBlocked or
+                    NoticeMessageId.TosBan
+                   )
                 {
-                    _logger.LogInformation("Bot {BotUserName} ({BotId}) is banned from {RoomName}.",
-                        _botInstance.BotInstanceData.UserName, _botInstance.BotInstanceData.UserId, ircNotice.RoomName);
+                    _logger.LogInformation("Bot {BotUserName} ({BotId}) failed joining {RoomName}: {Reason}",
+                        _botInstance.BotInstanceData.UserName,
+                        _botInstance.BotInstanceData.UserId,
+                        ircNotice.RoomName,
+                        Enum.GetName(ircNotice.MessageId)
+                    );
                     IrcHubDbContext context = IrcHubDbContext;
                     Channel? channelBannedIn = await context.Channels
                         .FirstOrDefaultAsync(channel => channel.ChannelName.ToLower() == ircNotice.RoomName.ToLower());
@@ -280,7 +289,7 @@ public class IrcPoolManager : IIrcPoolManager
                     }
                     else
                     {
-                        _logger.LogWarning("Could not find the channel the bot is banned in in the DB.");
+                        _logger.LogWarning("Could not find the channel {RoomName} in in the DB", ircNotice.RoomName);
                     }
                 }
 
