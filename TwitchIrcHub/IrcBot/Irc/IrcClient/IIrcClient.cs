@@ -9,4 +9,5 @@ public interface IIrcClient
     public BulkObservableCollection<string> Channels { get; }
     public Task Shutdown();
     public Task SendLine(string line);
+    public Task CheckAlive();
 }

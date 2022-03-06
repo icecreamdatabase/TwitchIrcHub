@@ -74,6 +74,8 @@ public class IrcPoolManager : IIrcPoolManager
     public Task IntervalPing()
     {
         UpdateChannels();
+        _ircReceiveClients.ForEach(c => c.CheckAlive());
+        _ircSendClients.ForEach(c => c.CheckAlive());
         return Task.CompletedTask;
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.Net.Sockets;
 using System.Text;
 using System.Timers;
+using TwitchIrcHub.ExternalApis.Discord;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.DataTypes;
 using TwitchIrcHub.IrcBot.Irc.IrcPoolManager;
@@ -184,8 +185,24 @@ public class IrcClient : IIrcClient
         _reconnectionAttempts = Math.Min(_reconnectionAttempts, ReconnectMaxMultiplier);
     }
 
+    public Task CheckAlive()
+    {
+        double totalSeconds = (DateTime.UtcNow - _lastReceivedLine).TotalSeconds;
+        if (totalSeconds > 60)
+        {
+            _logger.LogWarning("No lines received in the last {TotalSec} seconds", totalSeconds);
+            DiscordLogger.Log(LogLevel.Warning, $"No lines received in the last {totalSeconds} seconds.");
+        }
+
+        return Task.CompletedTask;
+    }
+    
+    private DateTime _lastReceivedLine = DateTime.UtcNow;
+
     private async Task HandleIrcCommand(IrcMessage ircMessage, CancellationToken stoppingToken)
     {
+        _lastReceivedLine = DateTime.UtcNow;
+        
         switch (ircMessage.IrcCommand)
         {
             /* --------------------------------------------------------------------------- */
@@ -222,7 +239,7 @@ public class IrcClient : IIrcClient
                 await _streamWriter.FlushAsync();
                 return;
             case IrcCommands.Ping when _streamWriter == null:
-                _logger.LogWarning("Received Ping with no valid StreamWriter.");
+                _logger.LogWarning("Received Ping with no valid StreamWriter");
                 return;
             case IrcCommands.Pong:
                 _awaitingPing = false;
