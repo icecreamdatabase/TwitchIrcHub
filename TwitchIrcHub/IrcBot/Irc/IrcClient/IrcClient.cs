@@ -88,19 +88,43 @@ public class IrcClient : IIrcClient
         }
         else
         {
-            if (_streamWriter != null)
+            if (_streamWriter != null && _fullyConnected)
             {
-                await _streamWriter.WriteLineAsync("PING");
-                await _streamWriter.FlushAsync();
-            }
+                try
+                {
+                    await _streamWriter.WriteLineAsync("PING");
+                    await _streamWriter.FlushAsync();
+                    _awaitingPing = true;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(
+                        "Not able to send a PONG because of {Exception}. Reconnecting...",
+                        exception.GetType().ToString()
+                    );
+                    _pingInterval.Stop();
+                    await Disconnect();
+                    _awaitingPing = false;
+                }
 
-            _awaitingPing = true;
+                _awaitingPing = true;
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Not able to send a PONG. (_streamWriter != null == {StreamWriter}, _fullyConnected == {Fullyconnected}) Reconnecting...",
+                    _streamWriter != null, _fullyConnected
+                );
+                _pingInterval.Stop();
+                await Disconnect();
+                _awaitingPing = false;
+            }
         }
     }
 
     private async Task Connect(CancellationToken stoppingToken)
     {
-        Console.WriteLine($"Connecting to {Server}:{Port}");
+        _logger.LogInformation("Connecting to {Server}:{Port}", Server, Port);
         try
         {
             _tcpClient?.Close();
@@ -139,9 +163,9 @@ public class IrcClient : IIrcClient
                 {
                     line = await readTask.WithCancellation(stoppingToken) ?? string.Empty;
                 }
-                catch (OperationCanceledException)
+                catch (Exception exception)
                 {
-                    _logger.LogWarning("Read was cancelled!");
+                    _logger.LogWarning("Read was cancelled by {Exception}", exception.GetType().ToString());
                     continue;
                 }
 
@@ -196,19 +220,20 @@ public class IrcClient : IIrcClient
 
         return Task.CompletedTask;
     }
-    
+
     private DateTime _lastReceivedLine = DateTime.UtcNow;
 
     private async Task HandleIrcCommand(IrcMessage ircMessage, CancellationToken stoppingToken)
     {
         _lastReceivedLine = DateTime.UtcNow;
-        
+
         switch (ircMessage.IrcCommand)
         {
             /* --------------------------------------------------------------------------- */
             /* ------------------------------ Setup commands ----------------------------- */
             /* --------------------------------------------------------------------------- */
             case IrcCommands.RplWelcome when _isSendOnlyConnection:
+                _fullyConnected = true;
                 return;
             case IrcCommands.RplWelcome when !_isSendOnlyConnection:
                 _ = Task.Delay(4000, stoppingToken).ContinueWith(_ =>
