@@ -18,6 +18,7 @@ public class IrcClient : IIrcClient
     private const int Port = 6667;
 
     private IIrcPoolManager _ircPoolManager = null!;
+    private string _connectionId = string.Empty;
 
     /* Ping */
     private bool _awaitingPing;
@@ -54,13 +55,14 @@ public class IrcClient : IIrcClient
         Channels.CollectionChanged += UpdateJoinedChannels;
     }
 
-    public void Init(IIrcPoolManager ircPoolManager, bool isSendOnlyConnection)
+    public void Init(IIrcPoolManager ircPoolManager, bool isSendOnlyConnection, string connectionId)
     {
         _isSendOnlyConnection = isSendOnlyConnection;
         _ircPoolManager = ircPoolManager;
+        _connectionId = connectionId;
         _thread = new Thread(ThreadRun);
         _thread.Start();
-        _logger.LogInformation("IrcClient Started");
+        _logger.LogInformation("{ConnId}: IrcClient Started", _connectionId);
     }
 
     private async void ThreadRun()
@@ -80,7 +82,8 @@ public class IrcClient : IIrcClient
     {
         if (_awaitingPing)
         {
-            _logger.LogInformation("No PONG received for {Interval} s. Reconnecting...",
+            _logger.LogInformation("{ConnId}: No PONG received for {Interval} s. Reconnecting...",
+                _connectionId,
                 _pingInterval.Interval / 1000);
             _pingInterval.Stop();
             await Disconnect();
@@ -99,7 +102,8 @@ public class IrcClient : IIrcClient
                 catch (Exception exception)
                 {
                     _logger.LogWarning(
-                        "Not able to send a PONG because of {Exception}. Reconnecting...",
+                        "{ConnId}: Not able to send a PONG because of {Exception}. Reconnecting...",
+                        _connectionId,
                         exception.GetType().ToString()
                     );
                     _pingInterval.Stop();
@@ -112,7 +116,8 @@ public class IrcClient : IIrcClient
             else
             {
                 _logger.LogWarning(
-                    "Not able to send a PONG. (_streamWriter != null == {StreamWriter}, _fullyConnected == {Fullyconnected}) Reconnecting...",
+                    "{ConnId}: Not able to send a PONG. (_streamWriter != null == {StreamWriter}, _fullyConnected == {Fullyconnected}) Reconnecting...",
+                    _connectionId,
                     _streamWriter != null, _fullyConnected
                 );
                 _pingInterval.Stop();
@@ -124,7 +129,7 @@ public class IrcClient : IIrcClient
 
     private async Task Connect(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Connecting to {Server}:{Port}", Server, Port);
+        _logger.LogInformation("{ConnId}: Connecting to {Server}:{Port}", _connectionId, Server, Port);
         try
         {
             _tcpClient?.Close();
@@ -165,7 +170,10 @@ public class IrcClient : IIrcClient
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning("Read was cancelled by {Exception}", exception.GetType().ToString());
+                    _logger.LogWarning(
+                        "{ConnId}: Read was cancelled by {Exception}",
+                        _connectionId, exception.GetType().ToString()
+                    );
                     continue;
                 }
 
@@ -182,16 +190,16 @@ public class IrcClient : IIrcClient
         catch (SocketException e)
         {
             // ignored
-            _logger.LogError("{E}", e.ToString());
+            _logger.LogError("{ConnId}: {E}", _connectionId, e.ToString());
         }
         catch (IOException e)
         {
             // ignored
-            _logger.LogError("{E}", e.ToString());
+            _logger.LogError("{ConnId}: {E}", _connectionId, e.ToString());
         }
         catch (Exception e)
         {
-            _logger.LogError("{E}", e.ToString());
+            _logger.LogError("{ConnId}: {E}", _connectionId, e.ToString());
         }
 
         _streamWriter?.Close();
@@ -214,7 +222,8 @@ public class IrcClient : IIrcClient
         double totalSeconds = (DateTime.UtcNow - _lastReceivedLine).TotalSeconds;
         if (totalSeconds > 60)
         {
-            _logger.LogWarning("No lines received in the last {TotalSec} seconds", totalSeconds);
+            _logger.LogWarning("{ConnId}: No lines received in the last {TotalSec} seconds", _connectionId,
+                totalSeconds);
             DiscordLogger.Log(LogLevel.Warning, $"No lines received in the last {totalSeconds} seconds.");
         }
 
@@ -264,7 +273,7 @@ public class IrcClient : IIrcClient
                 await _streamWriter.FlushAsync();
                 return;
             case IrcCommands.Ping when _streamWriter == null:
-                _logger.LogWarning("Received Ping with no valid StreamWriter");
+                _logger.LogWarning("{ConnId}: Received Ping with no valid StreamWriter", _connectionId);
                 return;
             case IrcCommands.Pong:
                 _awaitingPing = false;
@@ -284,7 +293,7 @@ public class IrcClient : IIrcClient
             case IrcCommands.Notice
                 when ircMessage.IrcParameters[1].Contains("Login authentication failed"):
 
-                _logger.LogWarning("Auth failed");
+                _logger.LogWarning("{ConnId}: Auth failed", _connectionId);
                 //TODO: do we need to do something else here?
                 await _ircPoolManager.ForceCheckAuth();
                 return;
@@ -307,7 +316,10 @@ public class IrcClient : IIrcClient
             /* ----------------------------- Default fallback ---------------------------- */
             /* --------------------------------------------------------------------------- */
             default:
-                //_logger.LogInformation("{Command}—{RawSource}", ircMessage.IrcCommand, ircMessage.RawSource);
+                //_logger.LogInformation(
+                //    "{ConnId}: {Command}—{RawSource}",
+                //    _connectionId, ircMessage.IrcCommand, ircMessage.RawSource
+                //);
                 return;
         }
     }
@@ -336,7 +348,7 @@ public class IrcClient : IIrcClient
     public async Task SendLine(string line)
     {
         if (_streamWriter == null)
-            _logger.LogWarning("StreamWriter is null for line: \n{Line}", line);
+            _logger.LogWarning("{ConnId}: StreamWriter is null for line: \n{Line}", _connectionId, line);
         else
             try
             {
@@ -345,7 +357,7 @@ public class IrcClient : IIrcClient
             }
             catch (Exception e)
             {
-                _logger.LogError("Failed sending line: \n{Line}\n{E}", line, e.ToString());
+                _logger.LogError("{ConnId}: Failed sending line: \n{Line}\n{E}", _connectionId, line, e.ToString());
             }
     }
 
@@ -359,7 +371,7 @@ public class IrcClient : IIrcClient
         // If we are only here for sending ... stop trying to join or part channels!
         if (_isSendOnlyConnection)
         {
-            _logger.LogWarning("Send only connection is trying to update channels!");
+            _logger.LogWarning("{ConnId}: Send only connection is trying to update channels!", _connectionId);
             return;
         }
 
@@ -374,10 +386,12 @@ public class IrcClient : IIrcClient
         } while (await PartExcessive() || await JoinMissing());
 
         if (_actualChannels.Except(Channels).Any())
-            _logger.LogWarning("Still has channels to part: {Count}", _actualChannels.Except(Channels).Count());
+            _logger.LogWarning("{ConnId}: Still has channels to part: {Count}", _connectionId,
+                _actualChannels.Except(Channels).Count());
 
         if (Channels.Except(_actualChannels).Any())
-            _logger.LogWarning("Still has channels to join: {Count}", Channels.Except(_actualChannels).Count());
+            _logger.LogWarning("{ConnId}: Still has channels to join: {Count}", _connectionId,
+                Channels.Except(_actualChannels).Count());
 
         if (Channels.Count == 0)
         {
@@ -416,8 +430,10 @@ public class IrcClient : IIrcClient
             if (ircCommand.Length <= 5) continue;
 
             string msg = ircCommand.ToString()[..(ircCommand.Length - 1)];
-            //_logger.LogInformation("{Msg}", msg);
-            _logger.LogInformation("{BotUserName} sending: {Msg}", _ircPoolManager.BotUsername, msg);
+            _logger.LogInformation(
+                "{ConnId}: {BotUserName} sending: {Msg}",
+                _connectionId, _ircPoolManager.BotUsername, msg
+            );
             if (_streamWriter != null)
             {
                 await _streamWriter.WriteLineAsync(msg);
@@ -451,8 +467,10 @@ public class IrcClient : IIrcClient
             if (ircCommand.Length <= 5) continue;
 
             string msg = ircCommand.ToString()[..(ircCommand.Length - 1)];
-            //_logger.LogInformation("{Msg}", msg);
-            _logger.LogInformation("{BotUserName} sending: {Msg}", _ircPoolManager.BotUsername, msg);
+            _logger.LogInformation(
+                "{ConnId}: {BotUserName} sending: {Msg}",
+                _connectionId, _ircPoolManager.BotUsername, msg
+            );
             if (_streamWriter != null)
             {
                 await _streamWriter.WriteLineAsync(msg);

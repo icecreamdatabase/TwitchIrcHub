@@ -63,7 +63,9 @@ public class IrcPoolManager : IIrcPoolManager
         for (int i = 0; i < _botInstance.BotInstanceData.Limits.SendConnections; i++)
         {
             IIrcClient ircClient = _ircClientFactory.Create();
-            ircClient.Init(this, true);
+            ircClient.Init(this, true,
+                $"{_botInstance.BotInstanceData.UserName}_send_{_ircSendClients.Count + 1}"
+            );
             _ircSendClients.Add(ircClient);
         }
 
@@ -115,7 +117,8 @@ public class IrcPoolManager : IIrcPoolManager
         while (channels.Count > 0)
         {
             IIrcClient ircClient = _ircClientFactory.Create();
-            ircClient.Init(this);
+            ircClient.Init(this, false,
+                $"{_botInstance.BotInstanceData.UserName}_receive_{_ircReceiveClients.Count + 1}");
             _ircReceiveClients.Add(ircClient);
 
             List<string> newChannels = channels.Take(Math.Min(channels.Count, MaxChannelsPerIrcClient)).ToList();
