@@ -430,10 +430,7 @@ public class IrcClient : IIrcClient
             if (ircCommand.Length <= 5) continue;
 
             string msg = ircCommand.ToString()[..(ircCommand.Length - 1)];
-            _logger.LogInformation(
-                "{ConnId}: {BotUserName} sending: {Msg}",
-                _connectionId, _ircPoolManager.BotUsername, msg
-            );
+            _logger.LogInformation( "{ConnId} sending: {Msg}", _connectionId, msg );
             if (_streamWriter != null)
             {
                 await _streamWriter.WriteLineAsync(msg);
@@ -467,10 +464,7 @@ public class IrcClient : IIrcClient
             if (ircCommand.Length <= 5) continue;
 
             string msg = ircCommand.ToString()[..(ircCommand.Length - 1)];
-            _logger.LogInformation(
-                "{ConnId}: {BotUserName} sending: {Msg}",
-                _connectionId, _ircPoolManager.BotUsername, msg
-            );
+            _logger.LogInformation("{ConnId} sending: {Msg}", _connectionId, msg);
             if (_streamWriter != null)
             {
                 await _streamWriter.WriteLineAsync(msg);
