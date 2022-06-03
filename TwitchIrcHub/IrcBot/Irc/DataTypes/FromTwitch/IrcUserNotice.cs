@@ -203,7 +203,8 @@ public enum UserNoticeMessageId
     Unraid,
     Ritual,
     BitsBadgeTier,
-    PrimePaidUpgrade
+    PrimePaidUpgrade,
+    Announcement
 }
 
 public enum UserNoticeRitualName
