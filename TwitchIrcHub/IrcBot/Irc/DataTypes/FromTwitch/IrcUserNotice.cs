@@ -21,7 +21,7 @@ public class IrcUserNotice
     public string? Message { get; }
     public UserNoticeMessageId MessageId { get; }
     public int RoomId { get; }
-    public string SystemMessage { get; }
+    public string? SystemMessage { get; }
     public DateTime TmiSentTs { get; }
     public int UserId { get; }
 
@@ -115,8 +115,6 @@ public class IrcUserNotice
             throw new Exception($"USERNOTICE without valid displayName:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(login))
             throw new Exception($"USERNOTICE without valid login:\n{ircMessage.RawSource}");
-        if (string.IsNullOrEmpty(systemMessage))
-            throw new Exception($"USERNOTICE without valid systemMessage:\n{ircMessage.RawSource}");
         if (string.IsNullOrEmpty(userId))
             throw new Exception($"USERNOTICE without valid userId:\n{ircMessage.RawSource}");
         if (ircMessage.IrcParameters.Count < 1)
