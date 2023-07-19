@@ -109,7 +109,7 @@ public class IrcPoolManager : IIrcPoolManager
         {
             int freeSlots = MaxChannelsPerIrcClient - ircClient.Channels.Count;
             List<string> newChannels = channels.Take(freeSlots).ToList();
-            channels.RemoveRange(0, freeSlots);
+            channels.RemoveRange(0, Math.Min(freeSlots, channels.Count));
             ircClient.Channels.AddRange(newChannels);
         }
 
