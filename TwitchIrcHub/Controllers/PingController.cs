@@ -6,9 +6,9 @@ namespace TwitchIrcHub.Controllers;
 [Route("[controller]")]
 public class PingController : ControllerBase
 {
-    private readonly ILogger<TestController> _logger;
+    private readonly ILogger<PingController> _logger;
 
-    public PingController(ILogger<TestController> logger)
+    public PingController(ILogger<PingController> logger)
     {
         _logger = logger;
     }

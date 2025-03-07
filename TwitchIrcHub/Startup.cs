@@ -140,8 +140,8 @@ public class Startup
         services.AddFactory<IBotInstanceData, BotInstanceData>();
         
         /* ---------- PubSub ---------- */
-        services.AddFactory<IPubSubPoolManager, PubSubPoolManager>();
-        services.AddFactory<IPubSubClient, PubSubClient>();
+        //services.AddFactory<IPubSubPoolManager, PubSubPoolManager>();
+        //services.AddFactory<IPubSubClient, PubSubClient>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

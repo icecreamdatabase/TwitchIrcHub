@@ -11,21 +11,21 @@ public class BotInstance : IBotInstance
     private readonly ILogger<BotInstance> _logger;
     private readonly IFactory<IIrcPoolManager> _ircPoolManagerFactor;
     private readonly IFactory<IBotInstanceData> _botInstanceDataFactory;
-    private readonly IFactory<IPubSubPoolManager> _pubSubPoolManagerFactor;
+    //private readonly IFactory<IPubSubPoolManager> _pubSubPoolManagerFactor;
     private IIrcPoolManager _ircPoolManager = null!;
-    private IPubSubPoolManager _pubSubPoolManager = null!;
+    //private IPubSubPoolManager _pubSubPoolManager = null!;
     public IBotInstanceData BotInstanceData { get; private set; } = null!;
 
     public BotInstance(ILogger<BotInstance> logger,
         IFactory<IIrcPoolManager> ircPoolManagerFactor,
-        IFactory<IBotInstanceData> botInstanceDataFactory,
-        IFactory<IPubSubPoolManager> pubSubPoolManagerFactor
+        IFactory<IBotInstanceData> botInstanceDataFactory//,
+        //IFactory<IPubSubPoolManager> pubSubPoolManagerFactor
     )
     {
         _logger = logger;
         _ircPoolManagerFactor = ircPoolManagerFactor;
         _botInstanceDataFactory = botInstanceDataFactory;
-        _pubSubPoolManagerFactor = pubSubPoolManagerFactor;
+        //_pubSubPoolManagerFactor = pubSubPoolManagerFactor;
     }
 
     public async Task Init(int botUserId)
@@ -34,15 +34,15 @@ public class BotInstance : IBotInstance
         await BotInstanceData.Init(botUserId);
         _ircPoolManager = _ircPoolManagerFactor.Create();
         await _ircPoolManager.Init(this);
-        _pubSubPoolManager = _pubSubPoolManagerFactor.Create();
-        await _pubSubPoolManager.Init(this);
+        //_pubSubPoolManager = _pubSubPoolManagerFactor.Create();
+        //await _pubSubPoolManager.Init(this);
     }
 
     public async Task IntervalPing()
     {
         await BotInstanceData.IntervalPing();
         await _ircPoolManager.IntervalPing();
-        await _pubSubPoolManager.IntervalPing();
+        //await _pubSubPoolManager.IntervalPing();
     }
 
     public void SendPrivMsg(PrivMsgToTwitch privMsg)
