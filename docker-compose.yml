@@ -1,5 +1,3 @@
-version: '3.3'
-
 services:
   twitchirchub:
     build: .
@@ -8,9 +6,16 @@ services:
     #  - .env
     environment:
       - Logging__Console__FormatterName=
-    network_mode: bridge
-    volumes:
-      - /var/run/mysqld/mysqld.sock:/root/mysqld.sock:rw
+    #network_mode: bridge
+    #volumes:
+    #  - /var/run/mysqld/mysqld.sock:/root/mysqld.sock:rw
     ports:
-      - "4720:80"
+      - "4720:8080"
+    networks:
+      - mariadbnetwork
     restart: unless-stopped
+
+networks:
+  mariadbnetwork:
+    name: "mariadbnetwork"
+    external: true
