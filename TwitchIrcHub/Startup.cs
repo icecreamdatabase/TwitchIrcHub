@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using TwitchIrcHub.Authentication;
 using TwitchIrcHub.Authentication.Policies;
 using TwitchIrcHub.Authentication.Policies.Handler;
@@ -15,8 +14,6 @@ using TwitchIrcHub.IrcBot.Bot;
 using TwitchIrcHub.IrcBot.Helper;
 using TwitchIrcHub.IrcBot.Irc.IrcClient;
 using TwitchIrcHub.IrcBot.Irc.IrcPoolManager;
-using TwitchIrcHub.IrcBot.PubSub.PubSubClient;
-using TwitchIrcHub.IrcBot.PubSub.PubSubPoolManager;
 using TwitchIrcHub.Model;
 
 namespace TwitchIrcHub;
@@ -47,6 +44,7 @@ public class Startup
     {
         services.AddControllers();
         services.AddRouting(options => options.LowercaseUrls = true);
+        /*
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "TwitchIrcHub", Version = "v1" });
@@ -84,6 +82,7 @@ public class Startup
             if (File.Exists(commentsFile))
                 c.IncludeXmlComments(commentsFile);
         });
+        */
 
         services.AddDbContext<IrcHubDbContext>(opt =>
         {
