@@ -27,7 +27,7 @@ public class Startup
     /// (We don't expose the DB to the internet.)
     /// https://stackoverflow.com/a/45108611
     /// </summary>
-    private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false;SslMode=none";
+    private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false;SslMode=Disabled";
 
     private IConfiguration Configuration { get; }
     private IHostEnvironment HostingEnvironment { get; }
